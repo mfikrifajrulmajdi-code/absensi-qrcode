@@ -466,23 +466,36 @@ async function submitAbsensi(tipe) {
         btn.classList.add('success');
         setTimeout(() => btn.classList.remove('success'), 300);
 
-        // DISABLE AUTO-REFRESH DULU - untuk testing
-        // Kita akan refresh status manual dengan menekan tombol "Lihat Riwayat" atau refresh halaman
-        console.log('✅ Submit completed. Status will be updated on page refresh.');
-        console.log('💡 Tip: Refresh halaman (F5) untuk melihat status terbaru.');
+        // UPDATE STATUS LANGSUNG BERDASARKAN SUBMIT YANG SUKSES
+        // Ini mengatasi masalah backend cache yang belum bisa baca data baru
+        console.log('✅ Updating UI status based on successful submit...');
 
-        // Refresh status after successful submit - DISABLED FOR TESTING
-        // setTimeout(async () => {
-        //     console.log('Refreshing absensi status...');
-        //
-        //     // Cek lagi apakah masih dalam mode submit untuk prevention
-        //     if (isSubmitting) {
-        //         console.warn('⚠️ Still in submitting mode, skipping status check');
-        //         return;
-        //     }
-        //
-        //     await checkAbsensiStatus();
-        // }, 1000);
+        const now = new Date();
+        const jam = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        if (tipe === 'MASUK') {
+            // Update UI untuk status MASUK
+            elements.btnMasuk.disabled = true;
+            elements.btnPulang.disabled = false;
+            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + jam + '<br>Silakan absen PULANG.';
+            elements.absenStatus.className = 'absen-status info';
+            console.log('✅ Status updated: Sudah MASUK');
+        } else {
+            // Update UI untuk status PULANG (lengkap)
+            elements.btnMasuk.disabled = true;
+            elements.btnPulang.disabled = true;
+            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + (sessionStorage.getItem('jamMasuk') || jam) + ' | PULANG: ' + jam;
+            elements.absenStatus.className = 'absen-status success';
+            console.log('✅ Status updated: Sudah lengkap');
+        }
+
+        // Simpan jam MASUK untuk session ini (untuk PULANG nanti)
+        if (tipe === 'MASUK') {
+            sessionStorage.setItem('jamMasuk', jam);
+            sessionStorage.setItem('hasMasukToday', 'true');
+        }
+
+        console.log('💡 Status diupdate langsung dari frontend (backend cache issue)');
 
         // Clear photo after successful submit
         if (tipe === 'PULANG') {
