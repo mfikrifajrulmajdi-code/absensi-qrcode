@@ -184,7 +184,8 @@ function validateAbsensi(nama, tipe) {
 
   // Check hari ini (reverse dari row terbaru)
   for (var i = data.length - 1; i >= 1; i--) {
-    var rowDate = data[i][0].toString().substring(0, 10);
+    // Format date object ke string sebelum compare
+    var rowDate = Utilities.formatDate(data[i][0], "Asia/Jakarta", "yyyy-MM-dd");
 
     if (rowDate === todayStr && data[i][1] === nama) {
       if (data[i][2] === 'MASUK' && !hasMasuk) {
@@ -282,15 +283,16 @@ function checkAbsensiHariIni(nama) {
 
   // Check dari baris paling baru (reverse)
   for (var i = data.length - 1; i >= 1; i--) {
-    var rowDate = data[i][0].toString().substring(0, 10); // YYYY-MM-DD
+    // Format date object ke string sebelum compare
+    var rowDate = Utilities.formatDate(data[i][0], "Asia/Jakarta", "yyyy-MM-dd");
 
     if (rowDate === todayStr && data[i][1] === nama) {
       if (data[i][2] === 'MASUK' && !hasMasuk) {
         hasMasuk = true;
-        jamMasuk = data[i][0].toString().substring(11, 16); // HH:MM
+        jamMasuk = Utilities.formatDate(data[i][0], "Asia/Jakarta", "HH:mm");
       } else if (data[i][2] === 'PULANG') {
         hasPulang = true;
-        jamPulang = data[i][0].toString().substring(11, 16);
+        jamPulang = Utilities.formatDate(data[i][0], "Asia/Jakarta", "HH:mm");
       }
     } else if (rowDate < todayStr) {
       break; // Stop jika sudah lewat hari ini
