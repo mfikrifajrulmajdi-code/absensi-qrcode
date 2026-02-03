@@ -7,7 +7,7 @@
 // ==========================================
 
 // Ganti URL ini dengan URL Web App dari Google Apps Script Anda
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPU4glnqkdwbyxsjF44NyygyWN4HCacUs54CJP6WAdiCSK9_Yvi96R0nn7UYCnb7gP/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzox4QboNOE3xnWlK3VOWJDth3PdBodNn2z-a_GIe4TDepvanfXjVmEQvnOgQ3e7FFX/exec';
 
 // ==========================================
 // GLOBAL VARIABLES
