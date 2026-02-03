@@ -302,21 +302,45 @@ async function checkAbsensiStatus() {
 function updateAbsensiStatus(status) {
     console.log('Updating UI with status:', status);
 
+    // Cek apakah user sudah submit MASUK/PULANG di session ini
+    // Jika sudah, JANGAN override dengan status dari backend
+    const hasMasukSession = sessionStorage.getItem('hasMasukToday') === 'true';
+    const hasPulangSession = sessionStorage.getItem('hasPulangToday') === 'true';
+
+    console.log('Session storage - hasMasukToday:', hasMasukSession, 'hasPulangToday:', hasPulangSession);
+
     // Update status message
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
-        console.log('✅ Status: Sudah lengkap');
+        console.log('✅ Status: Sudah lengkap (from backend)');
         elements.btnMasuk.disabled = true;
         elements.btnPulang.disabled = true;
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
         // Sudah MASUK, belum PULANG
-        console.log('✅ Status: Sudah MASUK');
+        console.log('✅ Status: Sudah MASUK (from backend)');
         elements.btnMasuk.disabled = true;
         elements.btnPulang.disabled = false;
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
         elements.absenStatus.className = 'absen-status info';
+    } else if (hasMasukSession) {
+        // Backend bilang belum absen, TAPI session bilang sudah MASUK
+        // Ini karena backend cache belum update
+        // Gunakan data dari session storage
+        console.log('✅ Status: Sudah MASUK (from session - bypassing backend cache)');
+        elements.btnMasuk.disabled = true;
+        elements.btnPulang.disabled = !hasPulangSession;
+        const jamMasuk = sessionStorage.getItem('jamMasuk') || '...';
+        const jamPulang = sessionStorage.getItem('jamPulang') || '';
+
+        if (hasPulangSession) {
+            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + jamMasuk + ' | PULANG: ' + jamPulang;
+            elements.absenStatus.className = 'absen-status success';
+        } else {
+            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + jamMasuk + '<br>Silakan absen PULANG.';
+            elements.absenStatus.className = 'absen-status info';
+        }
     } else {
         // Belum absen sama sekali
         console.log('⏳ Status: Belum absen');
@@ -491,10 +515,13 @@ async function submitAbsensi(tipe) {
             console.log('✅ Status updated: Sudah lengkap');
         }
 
-        // Simpan jam MASUK untuk session ini (untuk PULANG nanti)
+        // Simpan ke sessionStorage untuk persist status di session browser
         if (tipe === 'MASUK') {
             sessionStorage.setItem('jamMasuk', jam);
             sessionStorage.setItem('hasMasukToday', 'true');
+        } else if (tipe === 'PULANG') {
+            sessionStorage.setItem('jamPulang', jam);
+            sessionStorage.setItem('hasPulangToday', 'true');
         }
 
         console.log('💡 Status diupdate langsung dari frontend (backend cache issue)');
