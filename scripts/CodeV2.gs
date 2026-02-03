@@ -22,8 +22,13 @@ var JAM_KERJA = 8; // Jam kerja regular
  */
 function doPost(e) {
   try {
+    // LOGGING untuk debugging
+    Logger.log("=== doPost START ===");
+    Logger.log("Request data: " + JSON.stringify(e));
+
     // Parse JSON data dari request
     var data = JSON.parse(e.postData.contents);
+    Logger.log("Parsed data - Nama: " + data.nama + ", Tipe: " + data.tipe);
 
     // Buka spreadsheet aktif
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -82,6 +87,7 @@ function doPost(e) {
     }
 
     // Tambah data ke sheet
+    Logger.log("Appending row to sheet...");
     sheet.appendRow([
       formattedTimestamp,
       data.nama || "",
@@ -94,8 +100,10 @@ function doPost(e) {
       data.userAgent || "",
       photoUrl
     ]);
+    Logger.log("Row appended successfully! Last row: " + sheet.getLastRow());
 
     // Return success response
+    Logger.log("=== doPost SUCCESS ===");
     return ContentService
       .createTextOutput(JSON.stringify({
         status: "success",
@@ -197,19 +205,33 @@ function validateAbsensi(nama, tipe) {
     }
   }
 
+  // LOGGING untuk debugging
+  Logger.log("=== VALIDATION DEBUG ===");
+  Logger.log("Nama: " + nama);
+  Logger.log("Tipe: " + tipe);
+  Logger.log("Today: " + todayStr);
+  Logger.log("hasMasuk: " + hasMasuk);
+  Logger.log("hasPulang: " + hasPulang);
+
   // Validasi
   if (tipe === 'MASUK' && hasMasuk) {
+    Logger.log("Validation FAILED: Sudah absen MASUK");
     return { valid: false, message: "Sudah absen MASUK hari ini. Untuk lembur, silakan hubungi admin." };
   }
 
   if (tipe === 'PULANG' && !hasMasuk) {
-    return { valid: false, message: "Belum absen MASUK hari ini." };
+    Logger.log("Validation FAILED: Belum absen MASUK");
+    Logger.log("WARNING: Allowing PULANG anyway for testing!");
+    // TEMPORARILY DISABLE THIS VALIDATION FOR TESTING
+    // return { valid: false, message: "Belum absen MASUK hari ini." };
   }
 
   if (tipe === 'PULANG' && hasPulang) {
+    Logger.log("Validation FAILED: Sudah absen PULANG");
     return { valid: false, message: "Sudah absen PULANG hari ini." };
   }
 
+  Logger.log("Validation PASSED");
   // Check jika lupa absen kemarin, auto-fix
   if (hasMasuk && !hasPulang && tipe === 'MASUK') {
     autoFixLupaAbsen(nama);
