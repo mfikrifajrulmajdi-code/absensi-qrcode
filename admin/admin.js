@@ -36,12 +36,17 @@ async function loadDashboard() {
 
 async function loadSummary() {
     try {
+        console.log('Loading summary from:', `${APPS_SCRIPT_URL}?action=summary`);
         const response = await fetch(`${APPS_SCRIPT_URL}?action=summary`);
         const data = await response.json();
+
+        console.log('Summary API response:', data);
 
         document.getElementById('totalMasuk').textContent = data.masuk || 0;
         document.getElementById('totalPulang').textContent = data.pulang || 0;
         document.getElementById('totalBelum').textContent = data.belum || 0;
+
+        console.log('Updated UI - MASUK:', data.masuk, 'PULANG:', data.pulang, 'BELUM:', data.belum);
     } catch (error) {
         console.error('Error loading summary:', error);
         document.getElementById('totalMasuk').textContent = 'Err';
