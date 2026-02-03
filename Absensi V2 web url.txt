@@ -1,0 +1,3 @@
+Deployment ID : AKfycbzox4QboNOE3xnWlK3VOWJDth3PdBodNn2z-a_GIe4TDepvanfXjVmEQvnOgQ3e7FFX
+
+web app url : https://script.google.com/macros/s/AKfycbzox4QboNOE3xnWlK3VOWJDth3PdBodNn2z-a_GIe4TDepvanfXjVmEQvnOgQ3e7FFX/exec

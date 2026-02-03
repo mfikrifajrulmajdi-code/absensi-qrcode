@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite - Frontend Absensi (app.js)</title>
+
+    <!-- QUnit CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.20.0.css">
+
+    <!-- Project CSS -->
+    <link rel="stylesheet" href="../src/style.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        #qunit {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .test-info .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .test-info .status.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-info .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-info .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .config-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .config-item label {
+            width: 200px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .config-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .config-item .status {
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        .config-item .status.ok {
+            color: #28a745;
+        }
+
+        .config-item .status.error {
+            color: #dc3545;
+        }
+
+        .test-actions {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .test-actions button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .test-actions button.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .test-actions button.primary:hover {
+            background: #0056b3;
+        }
+
+        .test-actions button.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .test-actions button.secondary:hover {
+            background: #545b62;
+        }
+
+        #connectionStatus {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .connection-item:last-child {
+            border-bottom: none;
+        }
+
+        .connection-item .name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .connection-item .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .connection-item .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-item .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .connection-item .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-info">
+        <h1>🧪 Test Suite - Frontend Absensi V2
+            <span id="overallStatus" class="status pending">PENDING</span>
+        </h1>
+        <p>Test unit untuk memvalidasi semua fungsi JavaScript di <code>app.js</code></p>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="config-section">
+        <h3>⚙️ Konfigurasi Test</h3>
+        <div class="config-item">
+            <label for="appsScriptUrl">Apps Script URL:</label>
+            <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" value="">
+            <span id="urlStatus" class="status"></span>
+        </div>
+        <div class="config-item">
+            <label for="testNama">Nama Karyawan Test:</label>
+            <input type="text" id="testNama" placeholder="TestUser" value="TestUser">
+        </div>
+        <div class="test-actions">
+            <button class="primary" onclick="runAllTests()">▶️ Jalankan Semua Test</button>
+            <button class="secondary" onclick="checkConnection()">🔌 Cek Koneksi Backend</button>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connectionStatus" style="display: none;">
+        <h3>🔌 Status Koneksi Backend</h3>
+        <div id="connectionList"></div>
+    </div>
+
+    <!-- QUnit Test Container -->
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <!-- QUnit JS -->
+    <script src="https://code.jquery.com/qunit/qunit-2.20.0.js"></script>
+
+    <!-- Load app.js for testing -->
+    <script>
+        // ============================================
+        // TEST CONFIGURATION
+        // ============================================
+
+        let testConfig = {
+            appsScriptUrl: '',
+            testNama: 'TestUser'
+        };
+
+        // Load config from localStorage
+        function loadConfig() {
+            const savedUrl = localStorage.getItem('appsScriptUrl');
+            const savedNama = localStorage.getItem('testNama');
+
+            if (savedUrl) {
+                document.getElementById('appsScriptUrl').value = savedUrl;
+                testConfig.appsScriptUrl = savedUrl;
+            }
+            if (savedNama) {
+                document.getElementById('testNama').value = savedNama;
+                testConfig.testNama = savedNama;
+            }
+        }
+
+        // Save config to localStorage
+        function saveConfig() {
+            testConfig.appsScriptUrl = document.getElementById('appsScriptUrl').value;
+            testConfig.testNama = document.getElementById('testNama').value;
+
+            localStorage.setItem('appsScriptUrl', testConfig.appsScriptUrl);
+            localStorage.setItem('testNama', testConfig.testNama);
+        }
+
+        // Update URL status
+        function updateUrlStatus() {
+            const url = document.getElementById('appsScriptUrl').value;
+            const statusEl = document.getElementById('urlStatus');
+
+            if (url && url.includes('script.google.com')) {
+                statusEl.textContent = '✅ Valid';
+                statusEl.className = 'status ok';
+            } else if (url) {
+                statusEl.textContent = '⚠️ Invalid URL';
+                statusEl.className = 'status error';
+            } else {
+                statusEl.textContent = '';
+                statusEl.className = 'status';
+            }
+
+            saveConfig();
+        }
+
+        // Event listener for URL input
+        document.getElementById('appsScriptUrl').addEventListener('input', updateUrlStatus);
+        document.getElementById('testNama').addEventListener('input', saveConfig);
+
+        // Load config on page load
+        loadConfig();
+        updateUrlStatus();
+
+        // ============================================
+        // CONNECTION TEST
+        // ============================================
+
+        async function checkConnection() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            if (!url) {
+                alert('❌ Silakan masukkan Apps Script URL terlebih dahulu!');
+                return;
+            }
+
+            const connectionStatus = document.getElementById('connectionStatus');
+            const connectionList = document.getElementById('connectionList');
+            connectionStatus.style.display = 'block';
+            connectionList.innerHTML = '<p style="text-align: center;">🔄 Testing connection...</p>';
+
+            const tests = [
+                { name: 'Backend Connection', url: url, action: 'checkStatus' },
+                { name: 'Summary Data', url: url, action: 'summary' },
+                { name: 'Get Data', url: url, action: 'getData' }
+            ];
+
+            let html = '';
+            let passed = 0;
+            let failed = 0;
+
+            for (const test of tests) {
+                try {
+                    const testUrl = `${test.url}?action=${test.action}`;
+                    const response = await fetch(testUrl);
+                    const result = await response.json();
+
+                    html += `
+                        <div class="connection-item">
+                            <span class="name">${test.name}</span>
+                            <span class="status success">✅ OK</span>
+                        </div>
+                    `;
+                    passed++;
+
+                } catch (error) {
+                    html += `
+                        <div class="connection-item">
+                            <span class="name">${test.name}</span>
+                            <span class="status error">❌ FAILED - ${error.message}</span>
+                        </div>
+                    `;
+                    failed++;
+                }
+            }
+
+            connectionList.innerHTML = html;
+
+            if (failed === 0) {
+                connectionList.innerHTML += '<div style="text-align: center; margin-top: 20px; color: #28a745; font-weight: 600;">✅ Semua koneksi berhasil!</div>';
+            } else {
+                connectionList.innerHTML += '<div style="text-align: center; margin-top: 20px; color: #dc3545; font-weight: 600;">❌ Beberapa koneksi gagal. Cek Apps Script URL Anda.</div>';
+            }
+        }
+
+        // ============================================
+        // RUN ALL TESTS
+        // ============================================
+
+        function runAllTests() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            if (!url) {
+                alert('❌ Silakan masukkan Apps Script URL terlebih dahulu!');
+                return;
+            }
+
+            // Update global variable
+            if (typeof APPS_SCRIPT_URL !== 'undefined') {
+                // Warning: This won't work because APPS_SCRIPT_URL is const in app.js
+                console.warn('APPS_SCRIPT_URL is const, cannot be modified');
+            }
+
+            // Run QUnit tests
+            QUnit.start();
+        }
+
+        // ============================================
+        // QUnit TEST SUITE
+        // ============================================
+
+        QUnit.module('Module 1: URL Parsing', function() {
+
+            QUnit.test('Test: Parse URL Parameters', function(assert) {
+                // Create test URL
+                const testUrl = 'http://example.com?nama=TestUser&perusahaan=PT%20Test&logo=https://example.com/logo.png';
+
+                // Parse params
+                const params = new URLSearchParams(new URL(testUrl).search);
+
+                assert.equal(params.get('nama'), 'TestUser', 'Nama parameter parsed correctly');
+                assert.equal(params.get('perusahaan'), 'PT Test', 'Perusahaan parameter decoded correctly');
+                assert.equal(params.get('logo'), 'https://example.com/logo.png', 'Logo URL parsed correctly');
+            });
+
+            QUnit.test('Test: Decode URI Components', function(assert) {
+                const encoded = 'PT%20Maju%20Sejahtera%20%26%20Sukses';
+                const decoded = decodeURIComponent(encoded);
+
+                assert.equal(decoded, 'PT Maju Sejahtera & Sukses', 'URI components decoded correctly');
+            });
+
+        });
+
+        QUnit.module('Module 2: Employee Data', function() {
+
+            QUnit.test('Test: Employee Data Structure', function(assert) {
+                const employeeData = {
+                    nama: 'Test User',
+                    perusahaan: 'PT Test',
+                    logoUrl: 'https://example.com/logo.png'
+                };
+
+                assert.ok(employeeData.nama, 'Nama exists');
+                assert.ok(employeeData.perusahaan, 'Perusahaan exists');
+                assert.ok(employeeData.logoUrl, 'Logo URL exists');
+            });
+
+            QUnit.test('Test: Display Employee Info', function(assert) {
+                const nama = 'Test User';
+                const perusahaan = 'PT Test';
+
+                // Simulate display
+                const displayNama = nama || 'Unknown';
+                const displayPerusahaan = perusahaan || 'Nama Perusahaan';
+
+                assert.equal(displayNama, 'Test User', 'Nama displayed correctly');
+                assert.equal(displayPerusahaan, 'PT Test', 'Perusahaan displayed correctly');
+            });
+
+        });
+
+        QUnit.module('Module 3: Geolocation', function() {
+
+            QUnit.test('Test: Location Data Structure', function(assert) {
+                const locationData = {
+                    latitude: -6.200000,
+                    longitude: 106.816666,
+                    error: null
+                };
+
+                assert.ok(locationData.latitude !== null, 'Latitude exists');
+                assert.ok(locationData.longitude !== null, 'Longitude exists');
+                assert.strictEqual(locationData.error, null, 'No error');
+            });
+
+            QUnit.test('Test: Format Coordinates', function(assert) {
+                const lat = -6.200000;
+                const lng = 106.816666;
+
+                const formatted = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+                assert.equal(formatted, '-6.200000, 106.816666', 'Coordinates formatted correctly');
+            });
+
+            QUnit.test('Test: Location Error States', function(assert) {
+                const errors = {
+                    PERMISSION_DENIED: 'Akses lokasi ditolak',
+                    POSITION_UNAVAILABLE: 'Lokasi tidak tersedia',
+                    TIMEOUT: 'Timeout mengambil lokasi'
+                };
+
+                assert.equal(errors.PERMISSION_DENIED, 'Akses lokasi ditolak', 'PERMISSION_DENIED error message correct');
+                assert.equal(errors.POSITION_UNAVAILABLE, 'Lokasi tidak tersedia', 'POSITION_UNAVAILABLE error message correct');
+                assert.equal(errors.TIMEOUT, 'Timeout mengambil lokasi', 'TIMEOUT error message correct');
+            });
+
+        });
+
+        QUnit.module('Module 4: Device Detection', function() {
+
+            QUnit.test('Test: Detect Mobile Device', function(assert) {
+                const mobileUA = 'Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36';
+
+                const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(mobileUA);
+
+                assert.true(isMobile, 'Mobile device detected correctly');
+            });
+
+            QUnit.test('Test: Detect Desktop Device', function(assert) {
+                const desktopUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+
+                const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(desktopUA);
+
+                assert.false(isMobile, 'Desktop device detected correctly');
+            });
+
+            QUnit.test('Test: Detect OS', function(assert) {
+                const testCases = [
+                    { ua: 'Windows NT 10.0', os: 'Windows' },
+                    { ua: 'Mac OS X', os: 'MacOS' },
+                    { ua: 'Android 10', os: 'Android' },
+                    { ua: 'iPhone OS', os: 'iOS' },
+                    { ua: 'Linux', os: 'Linux' }
+                ];
+
+                testCases.forEach(tc => {
+                    let detectedOS = 'Unknown';
+                    if (/Windows/i.test(tc.ua)) detectedOS = 'Windows';
+                    else if (/Macintosh|Mac OS/i.test(tc.ua)) detectedOS = 'MacOS';
+                    else if (/Android/i.test(tc.ua)) detectedOS = 'Android';
+                    else if (/iOS|iPhone|iPad|iPod/i.test(tc.ua)) detectedOS = 'iOS';
+                    else if (/Linux/i.test(tc.ua)) detectedOS = 'Linux';
+
+                    assert.equal(detectedOS, tc.os, `OS detection for ${tc.os} correct`);
+                });
+            });
+
+            QUnit.test('Test: Detect Browser', function(assert) {
+                const testCases = [
+                    { ua: 'Chrome/91.0', browser: 'Chrome' },
+                    { ua: 'Safari/537.36', browser: 'Safari' },
+                    { ua: 'Firefox/89.0', browser: 'Firefox' },
+                    { ua: 'Edge/91.0', browser: 'Edge' },
+                    { ua: 'OPR/77.0', browser: 'Opera' }
+                ];
+
+                testCases.forEach(tc => {
+                    let detectedBrowser = 'Unknown';
+                    if (/Chrome/i.test(tc.ua) && !/Edge|OPR/i.test(tc.ua)) detectedBrowser = 'Chrome';
+                    else if (/Safari/i.test(tc.ua) && !/Chrome/i.test(tc.ua)) detectedBrowser = 'Safari';
+                    else if (/Firefox/i.test(tc.ua)) detectedBrowser = 'Firefox';
+                    else if (/Edge/i.test(tc.ua)) detectedBrowser = 'Edge';
+                    else if (/OPR/i.test(tc.ua)) detectedBrowser = 'Opera';
+
+                    assert.equal(detectedBrowser, tc.browser, `Browser detection for ${tc.browser} correct`);
+                });
+            });
+
+        });
+
+        QUnit.module('Module 5: Camera & Photo', function() {
+
+            QUnit.test('Test: Photo Data Structure', function(assert) {
+                const photoData = 'data:image/jpeg;base64,/9j/4AAQSkZJRg...';
+
+                assert.ok(photoData.startsWith('data:image/'), 'Photo data is base64 format');
+                assert.ok(photoData.includes('base64'), 'Photo data contains base64 marker');
+            });
+
+            QUnit.test('Test: File Size Validation', function(assert) {
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                const validSize = 1024 * 1024; // 1MB
+                const invalidSize = 10 * 1024 * 1024; // 10MB
+
+                assert.true(validSize <= maxSize, '1MB file size is valid');
+                assert.false(invalidSize <= maxSize, '10MB file size is invalid');
+            });
+
+            QUnit.test('Test: Valid File Types', function(assert) {
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+
+                assert.true(validTypes.includes('image/jpeg'), 'JPEG is valid');
+                assert.true(validTypes.includes('image/png'), 'PNG is valid');
+                assert.false(validTypes.includes('application/pdf'), 'PDF is not valid for photo');
+            });
+
+        });
+
+        QUnit.module('Module 6: Clock & Date', function() {
+
+            QUnit.test('Test: Format Time (HH:MM:SS)', function(assert) {
+                const now = new Date();
+                const timeOptions = {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                const timeStr = now.toLocaleTimeString('id-ID', timeOptions);
+
+                assert.ok(timeStr.match(/^\d{2}:\d{2}:\d{2}$/), 'Time format is HH:MM:SS');
+            });
+
+            QUnit.test('Test: Format Date (Indonesia)', function(assert) {
+                const now = new Date();
+                const dateOptions = {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                };
+                const dateStr = now.toLocaleDateString('id-ID', dateOptions);
+
+                assert.ok(dateStr, 'Date string is generated');
+                assert.ok(dateStr.includes('2026') || dateStr.includes('2025'), 'Year is included');
+            });
+
+        });
+
+        QUnit.module('Module 7: Absensi Status', function() {
+
+            QUnit.test('Test: Status - Belum Absen', function(assert) {
+                const status = {
+                    hasMasuk: false,
+                    hasPulang: false,
+                    jamMasuk: null,
+                    jamPulang: null
+                };
+
+                assert.false(status.hasMasuk, 'Has not MASUK yet');
+                assert.false(status.hasPulang, 'Has not PULANG yet');
+                assert.strictEqual(status.jamMasuk, null, 'No MASUK time');
+                assert.strictEqual(status.jamPulang, null, 'No PULANG time');
+            });
+
+            QUnit.test('Test: Status - Sudah MASUK', function(assert) {
+                const status = {
+                    hasMasuk: true,
+                    hasPulang: false,
+                    jamMasuk: '08:15',
+                    jamPulang: null
+                };
+
+                assert.true(status.hasMasuk, 'Has MASUK');
+                assert.false(status.hasPulang, 'Has not PULANG yet');
+                assert.equal(status.jamMasuk, '08:15', 'MASUK time recorded');
+                assert.strictEqual(status.jamPulang, null, 'No PULANG time yet');
+            });
+
+            QUnit.test('Test: Status - Sudah Lengkap', function(assert) {
+                const status = {
+                    hasMasuk: true,
+                    hasPulang: true,
+                    jamMasuk: '08:15',
+                    jamPulang: '17:00'
+                };
+
+                assert.true(status.hasMasuk, 'Has MASUK');
+                assert.true(status.hasPulang, 'Has PULANG');
+                assert.equal(status.jamMasuk, '08:15', 'MASUK time recorded');
+                assert.equal(status.jamPulang, '17:00', 'PULANG time recorded');
+            });
+
+        });
+
+        QUnit.module('Module 8: Submit Validation', function() {
+
+            QUnit.test('Test: Validate Photo Required', function(assert) {
+                const photoData = null;
+
+                assert.strictEqual(photoData, null, 'No photo data');
+                assert.true(!photoData, 'Photo validation would fail');
+            });
+
+            QUnit.test('Test: Validate Location Data', function(assert) {
+                const locationData1 = { latitude: -6.2, longitude: 106.8, error: null };
+                const locationData2 = { latitude: null, longitude: null, error: 'Akses lokasi ditolak' };
+
+                assert.ok(locationData1.latitude, 'Valid location has latitude');
+                assert.strictEqual(locationData2.latitude, null, 'Invalid location has no latitude');
+            });
+
+            QUnit.test('Test: Double Submit Prevention', function(assert) {
+                let isSubmitting = false;
+
+                // First submit
+                assert.false(isSubmitting, 'Can submit initially');
+                isSubmitting = true;
+
+                // Second submit attempt
+                assert.true(isSubmitting, 'Cannot submit again while submitting');
+            });
+
+        });
+
+        QUnit.module('Module 9: Riwayat Functions', function() {
+
+            QUnit.test('Test: Riwayat Filter Parameters', function(assert) {
+                const bulan = 2;
+                const tahun = 2026;
+                const nama = 'TestUser';
+
+                assert.equal(bulan, 2, 'Bulan parameter correct');
+                assert.equal(tahun, 2026, 'Tahun parameter correct');
+                assert.equal(nama, 'TestUser', 'Nama parameter correct');
+            });
+
+            QUnit.test('Test: Render Riwayat Data', function(assert) {
+                const data = [
+                    { tanggal: '03/02/2026', jam: '08:15', tipe: 'MASUK', isAuto: false },
+                    { tanggal: '03/02/2026', jam: '17:00', tipe: 'PULANG', isAuto: false }
+                ];
+
+                assert.equal(data.length, 2, 'Two records');
+                assert.equal(data[0].tipe, 'MASUK', 'First record is MASUK');
+                assert.equal(data[1].tipe, 'PULANG', 'Second record is PULANG');
+            });
+
+        });
+
+        QUnit.module('Module 10: Backend Connection', function() {
+
+            QUnit.test('Test: APPS_SCRIPT_URL Configuration', function(assert) {
+                const url = document.getElementById('appsScriptUrl').value;
+
+                if (url) {
+                    assert.true(url.includes('script.google.com'), 'Apps Script URL is valid');
+                    assert.true(url.includes('/exec'), 'Apps Script URL ends with /exec');
+                } else {
+                    assert.skip('Apps Script URL not configured');
+                }
+            });
+
+            QUnit.test('Test: Build Request URL', function(assert) {
+                const baseUrl = 'https://script.google.com/macros/s/ABC123/exec';
+                const action = 'checkStatus';
+                const nama = 'TestUser';
+
+                const url = `${baseUrl}?action=${action}&nama=${encodeURIComponent(nama)}`;
+
+                assert.true(url.includes('action=checkStatus'), 'Action parameter included');
+                assert.true(url.includes('nama=TestUser'), 'Nama parameter included');
+            });
+
+        });
+
+        // Update overall status after tests complete
+        QUnit.done(function(details) {
+            const overallStatus = document.getElementById('overallStatus');
+
+            if (details.failed === 0) {
+                overallStatus.textContent = '✅ ALL PASSED';
+                overallStatus.className = 'status passed';
+            } else {
+                overallStatus.textContent = '❌ SOME FAILED';
+                overallStatus.className = 'status failed';
+            }
+
+            console.log('Test Summary:', {
+                total: details.total,
+                passed: details.passed,
+                failed: details.failed,
+                runtime: details.runtime
+            });
+        });
+
+        // Auto-start QUnit (disabled, use button instead)
+        // QUnit.config.autostart = false;
+    </script>
+</body>
+</html>

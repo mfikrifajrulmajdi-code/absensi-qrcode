@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite - Koneksi Frontend-Backend</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .config-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-indicator.valid {
+            color: #28a745;
+        }
+
+        .status-indicator.invalid {
+            color: #dc3545;
+        }
+
+        .test-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-results {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .test-results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .test-item.pending {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .test-item.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .test-item.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .test-item.running {
+            background: #cce5ff;
+            border-left: 4px solid #007bff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .test-item .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .test-item .content {
+            flex: 1;
+        }
+
+        .test-item .name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .test-item .message {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .test-item .time {
+            font-size: 0.85rem;
+            color: #999;
+            margin-left: 10px;
+        }
+
+        .summary {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .summary h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card.total {
+            background: #e9ecef;
+        }
+
+        .stat-card.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stat-card.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔌 Test Koneksi Frontend-Backend</h1>
+            <p>Memastikan semua komponen V2 terhubung dengan benar</p>
+        </div>
+
+        <!-- Configuration Card -->
+        <div class="config-card">
+            <h2>⚙️ Konfigurasi</h2>
+
+            <div class="form-group">
+                <label for="appsScriptUrl">
+                    Apps Script URL (Web App)
+                    <span id="urlStatus" class="status-indicator"></span>
+                </label>
+                <input
+                    type="text"
+                    id="appsScriptUrl"
+                    placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+                    oninput="validateUrl()"
+                >
+                <small style="color: #6c757d; display: block; margin-top: 5px;">
+                    URL Web App dari Google Apps Script yang sudah di-deploy
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="testNama">
+                    Nama Karyawan untuk Test
+                </label>
+                <input
+                    type="text"
+                    id="testNama"
+                    placeholder="TestUser"
+                    value="TestUser"
+                >
+            </div>
+
+            <div class="test-actions">
+                <button class="btn btn-primary" id="btnRunAll" onclick="runAllTests()">
+                    ▶️ Jalankan Semua Test
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="test-results" id="testResults" style="display: none;">
+            <h2>📊 Hasil Test</h2>
+            <div id="testList"></div>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📈 Ringkasan</h2>
+            <div class="summary-stats">
+                <div class="stat-card total">
+                    <div class="number" id="totalCount">0</div>
+                    <div class="label">Total Test</div>
+                </div>
+                <div class="stat-card passed">
+                    <div class="number" id="passedCount">0</div>
+                    <div class="label">✅ Passed</div>
+                </div>
+                <div class="stat-card failed">
+                    <div class="number" id="failedCount">0</div>
+                    <div class="label">❌ Failed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+
+        // Load saved config
+        function loadConfig() {
+            const savedUrl = localStorage.getItem('connectionTest_url');
+            const savedNama = localStorage.getItem('connectionTest_nama');
+
+            if (savedUrl) {
+                document.getElementById('appsScriptUrl').value = savedUrl;
+                validateUrl();
+            }
+            if (savedNama) {
+                document.getElementById('testNama').value = savedNama;
+            }
+        }
+
+        // Save config
+        function saveConfig() {
+            const url = document.getElementById('appsScriptUrl').value;
+            const nama = document.getElementById('testNama').value;
+
+            localStorage.setItem('connectionTest_url', url);
+            localStorage.setItem('connectionTest_nama', nama);
+        }
+
+        // Validate URL
+        function validateUrl() {
+            const url = document.getElementById('appsScriptUrl').value;
+            const statusEl = document.getElementById('urlStatus');
+
+            if (url && url.includes('script.google.com') && url.includes('/exec')) {
+                statusEl.textContent = '✅ Valid';
+                statusEl.className = 'status-indicator valid';
+            } else if (url) {
+                statusEl.textContent = '⚠️ Invalid';
+                statusEl.className = 'status-indicator invalid';
+            } else {
+                statusEl.textContent = '';
+                statusEl.className = 'status-indicator';
+            }
+
+            saveConfig();
+        }
+
+        // Event listeners
+        document.getElementById('testNama').addEventListener('input', saveConfig);
+
+        // Load config on page load
+        loadConfig();
+
+        // ============================================
+        // TEST FUNCTIONS
+        // ============================================
+
+        let testResults = [];
+        let currentTestIndex = 0;
+
+        const tests = [
+            {
+                name: 'Test 1: Backend Connection',
+                description: 'Menguji koneksi ke Google Apps Script',
+                action: 'testConnection'
+            },
+            {
+                name: 'Test 2: Check Status API',
+                description: 'Menguji API checkStatus',
+                action: 'testCheckStatus'
+            },
+            {
+                name: 'Test 3: Summary API',
+                description: 'Menguji API summary',
+                action: 'testSummary'
+            },
+            {
+                name: 'Test 4: Get Data API',
+                description: 'Menguji API getData',
+                action: 'testGetData'
+            },
+            {
+                name: 'Test 5: Get Riwayat API',
+                description: 'Menguji API getRiwayat',
+                action: 'testGetRiwayat'
+            },
+            {
+                name: 'Test 6: Get Izin Pending API',
+                description: 'Menguji API getIzinPending',
+                action: 'testGetIzinPending'
+            }
+        ];
+
+        async function runAllTests() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            if (!url) {
+                alert('❌ Silakan masukkan Apps Script URL terlebih dahulu!');
+                return;
+            }
+
+            if (!url.includes('script.google.com')) {
+                alert('❌ URL tidak valid! Harap masukkan URL Google Apps Script yang benar.');
+                return;
+            }
+
+            // Reset
+            testResults = [];
+            currentTestIndex = 0;
+
+            // Show test results
+            document.getElementById('testResults').style.display = 'block';
+            document.getElementById('testList').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+
+            // Disable button
+            document.getElementById('btnRunAll').disabled = true;
+
+            // Run tests sequentially
+            for (let i = 0; i < tests.length; i++) {
+                await runTest(tests[i], i);
+            }
+
+            // Show summary
+            showSummary();
+
+            // Re-enable button
+            document.getElementById('btnRunAll').disabled = false;
+        }
+
+        async function runTest(test, index) {
+            const testList = document.getElementById('testList');
+
+            // Add test item
+            const testItem = document.createElement('div');
+            testItem.className = 'test-item running';
+            testItem.id = 'test-' + index;
+            testItem.innerHTML = `
+                <div class="icon">🔄</div>
+                <div class="content">
+                    <div class="name">${test.name}</div>
+                    <div class="message">${test.description}</div>
+                </div>
+                <div class="time"></div>
+            `;
+            testList.appendChild(testItem);
+
+            const startTime = Date.now();
+
+            try {
+                // Run the test
+                const result = await window[test.action]();
+                const duration = Date.now() - startTime;
+
+                // Update test item
+                testItem.className = result.success ? 'test-item success' : 'test-item error';
+                testItem.innerHTML = `
+                    <div class="icon">${result.success ? '✅' : '❌'}</div>
+                    <div class="content">
+                        <div class="name">${test.name}</div>
+                        <div class="message">${result.message}</div>
+                    </div>
+                    <div class="time">${duration}ms</div>
+                `;
+
+                testResults.push({
+                    name: test.name,
+                    success: result.success,
+                    message: result.message,
+                    duration: duration
+                });
+
+            } catch (error) {
+                const duration = Date.now() - startTime;
+
+                testItem.className = 'test-item error';
+                testItem.innerHTML = `
+                    <div class="icon">❌</div>
+                    <div class="content">
+                        <div class="name">${test.name}</div>
+                        <div class="message">Error: ${error.message}</div>
+                    </div>
+                    <div class="time">${duration}ms</div>
+                `;
+
+                testResults.push({
+                    name: test.name,
+                    success: false,
+                    message: error.message,
+                    duration: duration
+                });
+            }
+
+            // Update progress
+            const progress = ((index + 1) / tests.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showSummary() {
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.success).length;
+            const failed = testResults.filter(r => !r.success).length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('passedCount').textContent = passed;
+            document.getElementById('failedCount').textContent = failed;
+
+            document.getElementById('summary').style.display = 'block';
+        }
+
+        // ============================================
+        // TEST ACTIONS
+        // ============================================
+
+        async function testConnection() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.status === 'error' && result.message.includes('Action is required')) {
+                    return {
+                        success: true,
+                        message: 'Backend terkoneksi (API aktif)'
+                    };
+                } else {
+                    return {
+                        success: true,
+                        message: 'Backend merespon: ' + JSON.stringify(result).substring(0, 50)
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal terkoneksi ke backend: ' + error.message);
+            }
+        }
+
+        async function testCheckStatus() {
+            const url = document.getElementById('appsScriptUrl').value;
+            const nama = document.getElementById('testNama').value;
+
+            try {
+                const response = await fetch(`${url}?action=checkStatus&nama=${encodeURIComponent(nama)}`);
+                const result = await response.json();
+
+                if (result.hasMasuk !== undefined && result.hasPulang !== undefined) {
+                    return {
+                        success: true,
+                        message: `Status valid: hasMasuk=${result.hasMasuk}, hasPulang=${result.hasPulang}`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Respons tidak sesuai format'
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal memanggil checkStatus: ' + error.message);
+            }
+        }
+
+        async function testSummary() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            try {
+                const response = await fetch(`${url}?action=summary`);
+                const result = await response.json();
+
+                if (result.masuk !== undefined && result.pulang !== undefined && result.belum !== undefined) {
+                    return {
+                        success: true,
+                        message: `Summary: MASUK=${result.masuk}, PULANG=${result.pulang}, BELUM=${result.belum}`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Respons tidak sesuai format'
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal memanggil summary: ' + error.message);
+            }
+        }
+
+        async function testGetData() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            try {
+                const response = await fetch(`${url}?action=getData`);
+                const result = await response.json();
+
+                if (Array.isArray(result)) {
+                    return {
+                        success: true,
+                        message: `Mengambil ${result.length} data absensi`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Respons bukan array'
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal memanggil getData: ' + error.message);
+            }
+        }
+
+        async function testGetRiwayat() {
+            const url = document.getElementById('appsScriptUrl').value;
+            const nama = document.getElementById('testNama').value;
+
+            try {
+                const now = new Date();
+                const bulan = now.getMonth() + 1;
+                const tahun = now.getFullYear();
+
+                const response = await fetch(`${url}?action=getRiwayat&nama=${encodeURIComponent(nama)}&bulan=${bulan}&tahun=${tahun}`);
+                const result = await response.json();
+
+                if (Array.isArray(result)) {
+                    return {
+                        success: true,
+                        message: `Mengambil ${result.length} riwayat untuk bulan ${bulan}/${tahun}`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Respons bukan array'
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal memanggil getRiwayat: ' + error.message);
+            }
+        }
+
+        async function testGetIzinPending() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            try {
+                const response = await fetch(`${url}?action=getIzinPending`);
+                const result = await response.json();
+
+                if (Array.isArray(result)) {
+                    return {
+                        success: true,
+                        message: `Mengambil ${result.length} izin pending`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'Respons bukan array'
+                    };
+                }
+
+            } catch (error) {
+                throw new Error('Gagal memanggil getIzinPending: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

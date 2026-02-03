@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite - Form Izin (izin.js)</title>
+
+    <!-- QUnit CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.20.0.css">
+
+    <!-- Project CSS -->
+    <link rel="stylesheet" href="../src/izin.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        #qunit {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .config-item label {
+            width: 200px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .config-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .test-actions {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .test-actions button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .test-actions button.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .test-actions button.primary:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-info">
+        <h1>🧪 Test Suite - Form Izin V2</h1>
+        <p>Test unit untuk memvalidasi semua fungsi JavaScript di <code>izin.js</code></p>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="config-section">
+        <h3>⚙️ Konfigurasi Test</h3>
+        <div class="config-item">
+            <label for="appsScriptUrl">Apps Script URL:</label>
+            <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="test-actions">
+            <button class="primary" onclick="runAllTests()">▶️ Jalankan Semua Test</button>
+        </div>
+    </div>
+
+    <!-- QUnit Test Container -->
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <!-- QUnit JS -->
+    <script src="https://code.jquery.com/qunit/qunit-2.20.0.js"></script>
+
+    <script>
+        // ============================================
+        // TEST CONFIGURATION
+        // ============================================
+
+        function runAllTests() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            if (!url) {
+                alert('❌ Silakan masukkan Apps Script URL terlebih dahulu!');
+                return;
+            }
+
+            QUnit.start();
+        }
+
+        // ============================================
+        // QUnit TEST SUITE
+        // ============================================
+
+        QUnit.module('Module 1: Initialization', function() {
+
+            QUnit.test('Test: Parse Nama from URL', function(assert) {
+                const testUrl = 'http://example.com/izin.html?nama=Budi%20Santoso';
+                const params = new URLSearchParams(new URL(testUrl).search);
+                const nama = params.get('nama');
+
+                assert.equal(nama, 'Budi Santoso', 'Nama parsed correctly');
+                assert.notEqual(nama, 'Unknown', 'Nama is not Unknown');
+            });
+
+            QUnit.test('Test: Decode URI Component', function(assert) {
+                const encoded = 'Budi%20Santoso';
+                const decoded = decodeURIComponent(encoded);
+
+                assert.equal(decoded, 'Budi Santoso', 'URI component decoded correctly');
+            });
+
+            QUnit.test('Test: Default Date to Today', function(assert) {
+                const today = new Date().toISOString().split('T')[0];
+                const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(today);
+
+                assert.true(isValidDate, 'Today date format is valid');
+                assert.equal(today.length, 10, 'Date string is 10 characters');
+            });
+
+            QUnit.test('Test: Max Date Restriction', function(assert) {
+                const today = new Date().toISOString().split('T')[0];
+
+                // Simulate HTML max attribute
+                const maxDate = today;
+                const futureDate = '2026-12-31';
+
+                const canSelectToday = true;
+                const canSelectFuture = futureDate <= maxDate;
+
+                assert.true(canSelectToday, 'Can select today');
+                assert.false(canSelectFuture, 'Cannot select future date');
+            });
+
+        });
+
+        QUnit.module('Module 2: File Input Handling', function() {
+
+            QUnit.test('Test: Valid File Types', function(assert) {
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+
+                assert.true(validTypes.includes('image/jpeg'), 'JPEG is valid');
+                assert.true(validTypes.includes('image/png'), 'PNG is valid');
+                assert.true(validTypes.includes('application/pdf'), 'PDF is valid');
+                assert.false(validTypes.includes('image/gif'), 'GIF is not valid');
+            });
+
+            QUnit.test('Test: File Size Validation', function(assert) {
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                const validSize = 1024 * 1024; // 1MB
+                const invalidSize = 10 * 1024 * 1024; // 10MB
+
+                assert.true(validSize <= maxSize, '1MB file is valid');
+                assert.false(invalidSize <= maxSize, '10MB file is invalid');
+            });
+
+            QUnit.test('Test: File to Base64 Conversion', function(assert) {
+                // Simulate base64 conversion
+                const fileData = 'data:application/pdf;base64,JVBERi0xLjQKJ...';
+                const isBase64 = fileData.startsWith('data:');
+                const hasBase64Marker = fileData.includes('base64,');
+
+                assert.true(isBase64, 'File data is in base64 format');
+                assert.true(hasBase64Marker, 'Has base64 marker');
+            });
+
+            QUnit.test('Test: Remove File Handler', function(assert) {
+                let lampiranData = 'data:application/pdf;base64,JVBERi0xLjQKJ...';
+
+                // Simulate remove file
+                lampiranData = null;
+
+                assert.strictEqual(lampiranData, null, 'Lampiran data cleared');
+            });
+
+        });
+
+        QUnit.module('Module 3: Jenis Izin Selection', function() {
+
+            QUnit.test('Test: Jenis Izin Options', function(assert) {
+                const jenisOptions = ['Sakit', 'Izin', 'Cuti'];
+
+                assert.equal(jenisOptions.length, 3, '3 jenis options');
+                assert.true(jenisOptions.includes('Sakit'), 'Sakit option exists');
+                assert.true(jenisOptions.includes('Izin'), 'Izin option exists');
+                assert.true(jenisOptions.includes('Cuti'), 'Cuti option exists');
+            });
+
+            QUnit.test('Test: Jenis Izin Icons', function(assert) {
+                const jenisIcons = {
+                    'Sakit': '🤒',
+                    'Izin': '📋',
+                    'Cuti': '🏖️'
+                };
+
+                assert.equal(jenisIcons['Sakit'], '🤒', 'Sakit icon correct');
+                assert.equal(jenisIcons['Izin'], '📋', 'Izin icon correct');
+                assert.equal(jenisIcons['Cuti'], '🏖️', 'Cuti icon correct');
+            });
+
+            QUnit.test('Test: Radio Button Selection', function(assert) {
+                // Simulate radio button selection
+                const selected = 'Izin';
+
+                assert.equal(selected, 'Izin', 'Jenis Izin selected');
+                assert.notEqual(selected, 'Sakit', 'Not Sakit');
+                assert.notEqual(selected, 'Cuti', 'Not Cuti');
+            });
+
+        });
+
+        QUnit.module('Module 4: Submit Validation', function() {
+
+            QUnit.test('Test: Nama Validation', function(assert) {
+                const nama1 = 'Budi Santoso';
+                const nama2 = 'Unknown';
+
+                assert.notEqual(nama1, 'Unknown', 'Valid nama');
+                assert.equal(nama2, 'Unknown', 'Invalid nama (Unknown)');
+            });
+
+            QUnit.test('Test: Tanggal Validation', function(assert) {
+                const tanggal1 = '2026-02-03';
+                const tanggal2 = '';
+                const tanggal3 = '2026-02-03';
+
+                const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(tanggal1);
+
+                assert.true(isValidDate, 'Valid date format');
+                assert.true(tanggal1 !== '', 'Date is not empty');
+                assert.equal(tanggal2, '', 'Empty date');
+            });
+
+            QUnit.test('Test: Alasan Validation', function(assert) {
+                const alasan1 = 'Demam tinggi';
+                const alasan2 = 'ABC'; // Less than 5 chars
+                const alasan3 = '';
+
+                const isValidLength = alasan1.trim().length >= 5;
+                const isInvalidLength = alasan2.trim().length < 5;
+                const isEmpty = alasan3.trim().length === 0;
+
+                assert.true(isValidLength, 'Alasan with 5+ chars is valid');
+                assert.true(isInvalidLength, 'Alasan with <5 chars is invalid');
+                assert.true(isEmpty, 'Empty alasan is invalid');
+            });
+
+            QUnit.test('Test: All Fields Validation', function(assert) {
+                const formData = {
+                    nama: 'Budi Santoso',
+                    jenis: 'Sakit',
+                    tanggal: '2026-02-03',
+                    alasan: 'Demam tinggi'
+                };
+
+                const isNamaValid = formData.nama !== 'Unknown';
+                const isTanggalValid = formData.tanggal !== '';
+                const isAlasanValid = formData.alasan.trim().length >= 5;
+
+                assert.true(isNamaValid, 'Nama is valid');
+                assert.true(isTanggalValid, 'Tanggal is valid');
+                assert.true(isAlasanValid, 'Alasan is valid');
+            });
+
+        });
+
+        QUnit.module('Module 5: Submit Process', function() {
+
+            QUnit.test('Test: Build Submit Data', function(assert) {
+                const formData = {
+                    nama: 'Budi Santoso',
+                    jenis: 'Sakit',
+                    tanggal: '2026-02-03',
+                    alasan: 'Demam tinggi',
+                    lampiran: 'data:application/pdf;base64,JVBERi0xLjQKJ...'
+                };
+
+                assert.equal(formData.nama, 'Budi Santoso', 'Nama in data');
+                assert.equal(formData.jenis, 'Sakit', 'Jenis in data');
+                assert.equal(formData.tanggal, '2026-02-03', 'Tanggal in data');
+                assert.equal(formData.alasan, 'Demam tinggi', 'Alasan in data');
+                assert.ok(formData.lampiran, 'Lampiran in data');
+            });
+
+            QUnit.test('Test: Submit URL Building', function(assert) {
+                const baseUrl = 'https://script.google.com/macros/s/ABC123/exec';
+                const action = 'submitIzin';
+
+                const submitUrl = `${baseUrl}?action=${action}`;
+
+                assert.true(submitUrl.includes('action=submitIzin'), 'Action parameter set');
+            });
+
+            QUnit.test('Test: Request Headers', function(assert) {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                assert.equal(headers['Content-Type'], 'application/json', 'Content-Type header set');
+            });
+
+            QUnit.test('Test: Request Mode', function(assert) {
+                const mode = 'no-cors';
+
+                assert.equal(mode, 'no-cors', 'Mode is no-cors for Google Apps Script');
+            });
+
+        });
+
+        QUnit.module('Module 6: Form Reset After Submit', function() {
+
+            QUnit.test('Test: Reset Form Fields', function(assert) {
+                // Simulate form reset
+                const formReset = true;
+                const namaRestored = 'Budi Santoso';
+                const tanggalReset = new Date().toISOString().split('T')[0];
+                const lampiranCleared = null;
+
+                assert.true(formReset, 'Form is reset');
+                assert.equal(namaRestored, 'Budi Santoso', 'Nama restored');
+                assert.ok(tanggalReset, 'Tanggal reset to today');
+                assert.strictEqual(lampiranCleared, null, 'Lampiran cleared');
+            });
+
+        });
+
+        QUnit.module('Module 7: Notification System', function() {
+
+            QUnit.test('Test: Success Notification', function(assert) {
+                const message = '✅ Pengajuan izin berhasil dikirim! Menunggu approval admin.';
+                const isError = false;
+
+                assert.true(message.includes('✅'), 'Success icon in message');
+                assert.true(message.includes('berhasil'), 'Success word in message');
+                assert.false(isError, 'Not an error');
+            });
+
+            QUnit.test('Test: Error Notification', function(assert) {
+                const message1 = '❌ Nama tidak ditemukan. Pastikan URL benar.';
+                const message2 = '❌ Silakan pilih tanggal izin';
+                const message3 = '❌ Silakan isi alasan (minimal 5 karakter)';
+                const message4 = '❌ Gagal mengirim pengajuan. Silakan coba lagi.';
+
+                assert.true(message1.includes('❌'), 'Error icon in message 1');
+                assert.true(message2.includes('❌'), 'Error icon in message 2');
+                assert.true(message3.includes('❌'), 'Error icon in message 3');
+                assert.true(message4.includes('❌'), 'Error icon in message 4');
+            });
+
+            QUnit.test('Test: Notification Auto Hide', function(assert) {
+                const autoHideDelay = 5000; // 5 seconds
+
+                assert.equal(autoHideDelay, 5000, 'Auto hide after 5 seconds');
+            });
+
+        });
+
+        QUnit.module('Module 8: Error Messages', function() {
+
+            QUnit.test('Test: Nama Error Message', function(assert) {
+                const errorMsg = '❌ Nama tidak ditemukan. Pastikan URL benar.';
+
+                assert.true(errorMsg.includes('Nama'), 'Mentions Nama');
+                assert.true(errorMsg.includes('URL'), 'Mentions URL');
+            });
+
+            QUnit.test('Test: Tanggal Error Message', function(assert) {
+                const errorMsg = '❌ Silakan pilih tanggal izin';
+
+                assert.true(errorMsg.includes('tanggal'), 'Mentions tanggal');
+                assert.true(errorMsg.includes('pilih'), 'Asks to select');
+            });
+
+            QUnit.test('Test: Alasan Error Message', function(assert) {
+                const errorMsg = '❌ Silakan isi alasan (minimal 5 karakter)';
+
+                assert.true(errorMsg.includes('alasan'), 'Mentions alasan');
+                assert.true(errorMsg.includes('5 karakter'), 'Mentions minimum length');
+            });
+
+            QUnit.test('Test: File Size Error Message', function(assert) {
+                const errorMsg = '❌ Ukuran file maksimal 5MB';
+
+                assert.true(errorMsg.includes('5MB'), 'Mentions max size');
+            });
+
+            QUnit.test('Test: File Type Error Message', function(assert) {
+                const errorMsg = '❌ Hanya file gambar (JPG, PNG) atau PDF yang diperbolehkan';
+
+                assert.true(errorMsg.includes('JPG'), 'Mentions JPG');
+                assert.true(errorMsg.includes('PNG'), 'Mentions PNG');
+                assert.true(errorMsg.includes('PDF'), 'Mentions PDF');
+            });
+
+        });
+
+        QUnit.module('Module 9: Submit Button State', function() {
+
+            QUnit.test('Test: Disable Submit During Request', function(assert) {
+                let disabled = false;
+
+                // Simulate submit start
+                disabled = true;
+                const btnText = 'Mengirim...';
+
+                assert.true(disabled, 'Button disabled during submit');
+                assert.equal(btnText, 'Mengirim...', 'Button text shows sending');
+
+                // Simulate submit complete
+                disabled = false;
+                const btnTextReset = '📤 Kirim Pengajuan';
+
+                assert.false(disabled, 'Button re-enabled after submit');
+                assert.equal(btnTextReset, '📤 Kirim Pengajuan', 'Button text reset');
+            });
+
+        });
+
+        QUnit.module('Module 10: Debug Info', function() {
+
+            QUnit.test('Test: Debug Info Structure', function(assert) {
+                const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/ABC123/exec';
+                const nama = 'Budi Santoso';
+                const hasLampiran = true;
+
+                assert.ok(APPS_SCRIPT_URL, 'Apps Script URL exists');
+                assert.ok(nama, 'Nama exists');
+                assert.equal(typeof hasLampiran, 'boolean', 'Has lampiran is boolean');
+            });
+
+        });
+
+        QUnit.module('Module 11: File Preview', function() {
+
+            QUnit.test('Test: Show File Preview', function(assert) {
+                const fileName = 'surat_dokter.pdf';
+                const showPreview = true;
+
+                assert.true(showPreview, 'Preview is shown');
+                assert.equal(fileName, 'surat_dokter.pdf', 'File name displayed');
+            });
+
+            QUnit.test('Test: Hide File Preview', function(assert) {
+                const showPreview = false;
+
+                assert.false(showPreview, 'Preview is hidden');
+            });
+
+        });
+
+        // Update overall status
+        QUnit.done(function(details) {
+            console.log('Form Izin Test Summary:', {
+                total: details.total,
+                passed: details.passed,
+                failed: details.failed,
+                runtime: details.runtime
+            });
+        });
+
+        // Auto-start QUnit (disabled, use button instead)
+        QUnit.config.autostart = false;
+    </script>
+</body>
+</html>

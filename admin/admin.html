@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Absensi</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard Absensi</h1>
+            <p class="subtitle">Real-time Monitoring</p>
+            <p class="timestamp" id="dashboardTime"></p>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="summary-section">
+            <div class="card summary-card masuk">
+                <div class="card-icon">🟢</div>
+                <div class="card-value" id="totalMasuk">-</div>
+                <div class="card-label">MASUK</div>
+            </div>
+            <div class="card summary-card pulang">
+                <div class="card-icon">🔴</div>
+                <div class="card-value" id="totalPulang">-</div>
+                <div class="card-label">PULANG</div>
+            </div>
+            <div class="card summary-card belum">
+                <div class="card-icon">⏳</div>
+                <div class="card-value" id="totalBelum">-</div>
+                <div class="card-label">BELUM</div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card filter-section">
+            <h3>🔍 Filter Data</h3>
+            <div class="filter-row">
+                <label>Dari:</label>
+                <input type="date" id="filterDateFrom">
+            </div>
+            <div class="filter-row">
+                <label>Sampai:</label>
+                <input type="date" id="filterDateTo">
+            </div>
+            <div class="filter-row">
+                <label>Nama:</label>
+                <input type="text" id="filterName" placeholder="Cari nama karyawan...">
+            </div>
+            <div class="filter-row">
+                <label>Tipe:</label>
+                <select id="filterType">
+                    <option value="">Semua Tipe</option>
+                    <option value="MASUK">MASUK</option>
+                    <option value="PULANG">PULANG</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="applyFilter()">Apply Filter</button>
+            <button class="btn btn-secondary" onclick="clearFilter()">Clear</button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card table-section">
+            <h3>📋 Data Absensi</h3>
+            <div class="table-wrapper">
+                <table id="absensiTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Nama</th>
+                            <th>Tipe</th>
+                            <th>Device</th>
+                            <th>Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="5" class="loading-row">Memuat data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="card export-section">
+            <h3>📥 Export Data</h3>
+            <p class="hint">Export data yang ditampilkan ke format CSV</p>
+            <button class="btn btn-export" onclick="exportData()">📥 Export ke CSV</button>
+        </div>
+
+        <!-- Pending Approval -->
+        <div class="card approval-section">
+            <h3>⏳ Pending Approval</h3>
+            <div id="pendingList">
+                <p class="loading-row">Memuat data...</p>
+            </div>
+        </div>
+
+        <!-- Auto-refresh indicator -->
+        <div class="refresh-indicator">
+            Auto-refresh: <span id="countdown">30</span>s
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div class="modal" id="photoModal" style="display: none;" onclick="closePhotoModal()">
+        <div class="modal-content-large" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Foto Absensi</h3>
+                <button class="modal-close" onclick="closePhotoModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalPhoto" src="" alt="Foto absen">
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

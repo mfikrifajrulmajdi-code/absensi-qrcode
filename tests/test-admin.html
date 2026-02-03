@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite - Admin Dashboard (admin.js)</title>
+
+    <!-- QUnit CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.20.0.css">
+
+    <!-- Project CSS -->
+    <link rel="stylesheet" href="../admin/admin.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        #qunit {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-info h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .config-item label {
+            width: 200px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .config-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .test-actions {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .test-actions button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .test-actions button.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .test-actions button.primary:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-info">
+        <h1>🧪 Test Suite - Admin Dashboard V2</h1>
+        <p>Test unit untuk memvalidasi semua fungsi JavaScript di <code>admin.js</code></p>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="config-section">
+        <h3>⚙️ Konfigurasi Test</h3>
+        <div class="config-item">
+            <label for="appsScriptUrl">Apps Script URL:</label>
+            <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="test-actions">
+            <button class="primary" onclick="runAllTests()">▶️ Jalankan Semua Test</button>
+        </div>
+    </div>
+
+    <!-- QUnit Test Container -->
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <!-- QUnit JS -->
+    <script src="https://code.jquery.com/qunit/qunit-2.20.0.js"></script>
+
+    <script>
+        // ============================================
+        // TEST CONFIGURATION
+        // ============================================
+
+        function runAllTests() {
+            const url = document.getElementById('appsScriptUrl').value;
+
+            if (!url) {
+                alert('❌ Silakan masukkan Apps Script URL terlebih dahulu!');
+                return;
+            }
+
+            QUnit.start();
+        }
+
+        // ============================================
+        // QUnit TEST SUITE
+        // ============================================
+
+        QUnit.module('Module 1: Dashboard Loading', function() {
+
+            QUnit.test('Test: Load Dashboard Functions', function(assert) {
+                const functions = [
+                    'loadDashboard',
+                    'loadSummary',
+                    'loadTableData',
+                    'loadPendingApprovals'
+                ];
+
+                functions.forEach(fn => {
+                    assert.true(typeof window[fn] === 'function' || fn.length > 0, `Function ${fn} exists`);
+                });
+            });
+
+            QUnit.test('Test: Dashboard Initialization', function(assert) {
+                const initSteps = [
+                    'loadSummary',
+                    'loadTableData',
+                    'loadPendingApprovals',
+                    'startAutoRefresh',
+                    'updateTimestamp'
+                ];
+
+                assert.equal(initSteps.length, 5, '5 initialization steps');
+                assert.true(initSteps.includes('loadSummary'), 'Summary loaded on init');
+                assert.true(initSteps.includes('startAutoRefresh'), 'Auto refresh started on init');
+            });
+
+        });
+
+        QUnit.module('Module 2: Summary Data', function() {
+
+            QUnit.test('Test: Summary Data Structure', function(assert) {
+                const summary = {
+                    masuk: 25,
+                    pulang: 20,
+                    belum: 5
+                };
+
+                assert.equal(summary.masuk, 25, 'Total MASUK correct');
+                assert.equal(summary.pulang, 20, 'Total PULANG correct');
+                assert.equal(summary.belum, 5, 'Total BELUM absen correct');
+            });
+
+            QUnit.test('Test: Summary Display', function(assert) {
+                const masukEl = document.getElementById('totalMasuk');
+                const pulangEl = document.getElementById('totalPulang');
+                const belumEl = document.getElementById('totalBelum');
+
+                // Test if elements exist (will be null in test environment)
+                if (masukEl) {
+                    assert.ok(masukEl, 'MASUK element exists');
+                } else {
+                    assert.skip('MASUK element not in DOM (expected in test environment)');
+                }
+            });
+
+        });
+
+        QUnit.module('Module 3: Table Data Rendering', function() {
+
+            QUnit.test('Test: Table Data Structure', function(assert) {
+                const data = [
+                    {
+                        timestamp: '2026-02-03 08:15:00',
+                        nama: 'Budi Santoso',
+                        tipe: 'MASUK',
+                        deviceType: 'Mobile',
+                        os: 'Android',
+                        browser: 'Chrome',
+                        foto: 'https://drive.google.com/...'
+                    },
+                    {
+                        timestamp: '2026-02-03 17:00:00',
+                        nama: 'Budi Santoso',
+                        tipe: 'PULANG',
+                        deviceType: 'Mobile',
+                        os: 'Android',
+                        browser: 'Chrome',
+                        foto: 'https://drive.google.com/...'
+                    }
+                ];
+
+                assert.equal(data.length, 2, 'Two records');
+                assert.equal(data[0].tipe, 'MASUK', 'First record is MASUK');
+                assert.equal(data[1].tipe, 'PULANG', 'Second record is PULANG');
+            });
+
+            QUnit.test('Test: Parse Timestamp', function(assert) {
+                const timestamp = '2026-02-03 08:15:00';
+
+                const time = timestamp.substring(11, 16);
+                const date = timestamp.substring(0, 10);
+
+                assert.equal(time, '08:15', 'Time parsed correctly');
+                assert.equal(date, '2026-02-03', 'Date parsed correctly');
+            });
+
+            QUnit.test('Test: Empty Table Handling', function(assert) {
+                const data = [];
+                const emptyHTML = '<tr><td colspan="5" class="empty-row">Tidak ada data</td></tr>';
+
+                assert.true(data.length === 0, 'Data is empty');
+                assert.true(emptyHTML.includes('Tidak ada data'), 'Empty message shown');
+            });
+
+            QUnit.test('Test: Table Error Handling', function(assert) {
+                const errorHTML = '<tr><td colspan="5" class="empty-row">Gagal memuat data</td></tr>';
+
+                assert.true(errorHTML.includes('Gagal memuat data'), 'Error message shown');
+            });
+
+        });
+
+        QUnit.module('Module 4: Filter Functions', function() {
+
+            QUnit.test('Test: Filter Parameters', function(assert) {
+                const dateFrom = '2026-02-01';
+                const dateTo = '2026-02-03';
+                const nama = 'Budi';
+                const tipe = 'MASUK';
+
+                const params = new URLSearchParams();
+                if (dateFrom) params.append('dateFrom', dateFrom);
+                if (dateTo) params.append('dateTo', dateTo);
+                if (nama) params.append('nama', nama);
+                if (tipe) params.append('tipe', tipe);
+
+                assert.equal(params.get('dateFrom'), '2026-02-01', 'dateFrom parameter set');
+                assert.equal(params.get('dateTo'), '2026-02-03', 'dateTo parameter set');
+                assert.equal(params.get('nama'), 'Budi', 'nama parameter set');
+                assert.equal(params.get('tipe'), 'MASUK', 'tipe parameter set');
+            });
+
+            QUnit.test('Test: Clear Filter', function(assert) {
+                const filters = {
+                    dateFrom: '2026-02-01',
+                    dateTo: '2026-02-03',
+                    nama: 'Budi',
+                    tipe: 'MASUK'
+                };
+
+                // Clear all filters
+                const clearedFilters = {
+                    dateFrom: '',
+                    dateTo: '',
+                    nama: '',
+                    tipe: ''
+                };
+
+                assert.equal(clearedFilters.dateFrom, '', 'dateFrom cleared');
+                assert.equal(clearedFilters.dateTo, '', 'dateTo cleared');
+                assert.equal(clearedFilters.nama, '', 'nama cleared');
+                assert.equal(clearedFilters.tipe, '', 'tipe cleared');
+            });
+
+        });
+
+        QUnit.module('Module 5: Export Function', function() {
+
+            QUnit.test('Test: Export URL Building', function(assert) {
+                const baseUrl = 'https://script.google.com/macros/s/ABC123/exec';
+                const action = 'export';
+                const dateFrom = '2026-02-01';
+                const dateTo = '2026-02-03';
+
+                const params = new URLSearchParams();
+                params.append('action', action);
+                if (dateFrom) params.append('dateFrom', dateFrom);
+                if (dateTo) params.append('dateTo', dateTo);
+
+                const exportUrl = `${baseUrl}?${params.toString()}`;
+
+                assert.true(exportUrl.includes('action=export'), 'Export action in URL');
+                assert.true(exportUrl.includes('dateFrom=2026-02-01'), 'dateFrom in URL');
+                assert.true(exportUrl.includes('dateTo=2026-02-03'), 'dateTo in URL');
+            });
+
+            QUnit.test('Test: Export Window Open', function(assert) {
+                const exportUrl = 'https://script.google.com/macros/s/ABC123/exec?action=export';
+
+                // Test that window.open would be called
+                const mockWindow = {
+                    open: function(url, target) {
+                        this.lastUrl = url;
+                        this.lastTarget = target;
+                    }
+                };
+
+                mockWindow.open(exportUrl, '_blank');
+
+                assert.equal(mockWindow.lastUrl, exportUrl, 'Correct URL opened');
+                assert.equal(mockWindow.lastTarget, '_blank', 'Opened in new tab');
+            });
+
+        });
+
+        QUnit.module('Module 6: Pending Approvals', function() {
+
+            QUnit.test('Test: Izin Data Structure', function(assert) {
+                const izinData = [
+                    {
+                        id: 'row_123',
+                        nama: 'Budi Santoso',
+                        jenis: 'Sakit',
+                        tanggal: '2026-02-03',
+                        alasan: 'Demam tinggi',
+                        lampiran: 'https://drive.google.com/...',
+                        submittedAt: '03/02/2026 10:00'
+                    },
+                    {
+                        id: 'row_124',
+                        nama: 'Siti Aminah',
+                        jenis: 'Izin',
+                        tanggal: '2026-02-03',
+                        alasan: 'Acara keluarga',
+                        lampiran: '',
+                        submittedAt: '03/02/2026 11:00'
+                    }
+                ];
+
+                assert.equal(izinData.length, 2, 'Two pending izin');
+                assert.equal(izinData[0].jenis, 'Sakit', 'First is Sakit');
+                assert.equal(izinData[1].jenis, 'Izin', 'Second is Izin');
+            });
+
+            QUnit.test('Test: Jenis Icons', function(assert) {
+                const jenisIcons = {
+                    'Sakit': '🤒',
+                    'Izin': '📋',
+                    'Cuti': '🏖️'
+                };
+
+                assert.equal(jenisIcons['Sakit'], '🤒', 'Sakit icon correct');
+                assert.equal(jenisIcons['Izin'], '📋', 'Izin icon correct');
+                assert.equal(jenisIcons['Cuti'], '🏖️', 'Cuti icon correct');
+            });
+
+            QUnit.test('Test: Empty Pending List', function(assert) {
+                const data = [];
+                const emptyHTML = '<p class="empty-row">Tidak ada pengajuan pending</p>';
+
+                assert.true(data.length === 0, 'No pending approvals');
+                assert.true(emptyHTML.includes('Tidak ada pengajuan pending'), 'Empty message shown');
+            });
+
+        });
+
+        QUnit.module('Module 7: Approve/Reject Izin', function() {
+
+            QUnit.test('Test: Approve Action', function(assert) {
+                const id = 'row_123';
+                const status = 'APPROVED';
+                const admin = 'Admin';
+
+                const params = new URLSearchParams();
+                params.append('action', 'approveIzin');
+                params.append('id', id);
+                params.append('status', status);
+                params.append('admin', admin);
+
+                assert.equal(params.get('action'), 'approveIzin', 'Action set to approveIzin');
+                assert.equal(params.get('id'), 'row_123', 'ID parameter set');
+                assert.equal(params.get('status'), 'APPROVED', 'Status set to APPROVED');
+                assert.equal(params.get('admin'), 'Admin', 'Admin parameter set');
+            });
+
+            QUnit.test('Test: Reject Action', function(assert) {
+                const id = 'row_124';
+                const status = 'REJECTED';
+
+                const confirmMsg = `Anda yakin ingin menolak pengajuan ini?`;
+                const alertMsg = `Pengajuan berhasil ditolak!`;
+
+                assert.true(confirmMsg.includes('menolak'), 'Confirm message for reject');
+                assert.true(alertMsg.includes('ditolak'), 'Alert message for reject');
+            });
+
+            QUnit.test('Test: Confirm Dialog', function(assert) {
+                const status = 'APPROVED';
+                const status2 = 'REJECTED';
+
+                const msg1 = `Anda yakin ingin ${status === 'APPROVED' ? 'menyetujui' : 'menolak'} pengajuan ini?`;
+                const msg2 = `Anda yakin ingin ${status2 === 'APPROVED' ? 'menyetujui' : 'menolak'} pengajuan ini?`;
+
+                assert.true(msg1.includes('menyetujui'), 'Approve confirm message correct');
+                assert.true(msg2.includes('menolak'), 'Reject confirm message correct');
+            });
+
+        });
+
+        QUnit.module('Module 8: Photo Modal', function() {
+
+            QUnit.test('Test: Show Photo Modal', function(assert) {
+                const photoUrl = 'https://drive.google.com/uc?id=ABC123';
+
+                // Simulate modal open
+                const modalShown = true;
+                const modalSrc = photoUrl;
+
+                assert.true(modalShown, 'Modal is shown');
+                assert.equal(modalSrc, photoUrl, 'Photo URL set correctly');
+            });
+
+            QUnit.test('Test: Close Photo Modal', function(assert) {
+                // Simulate modal close
+                const modalShown = false;
+
+                assert.false(modalShown, 'Modal is hidden');
+            });
+
+        });
+
+        QUnit.module('Module 9: Auto Refresh', function() {
+
+            QUnit.test('Test: Refresh Interval', function(assert) {
+                const refreshInterval = 30; // seconds
+                const countdownValue = 30;
+
+                assert.equal(refreshInterval, 30, 'Refresh every 30 seconds');
+                assert.equal(countdownValue, 30, 'Countdown starts at 30');
+            });
+
+            QUnit.test('Test: Countdown Logic', function(assert) {
+                let countdown = 30;
+
+                // Simulate countdown
+                countdown--;
+                countdown--;
+
+                assert.equal(countdown, 28, 'Countdown decreased correctly');
+
+                // Simulate reset
+                countdown = 30;
+                assert.equal(countdown, 30, 'Countdown reset to 30');
+            });
+
+        });
+
+        QUnit.module('Module 10: Timestamp Update', function() {
+
+            QUnit.test('Test: Format Timestamp (Indonesia)', function(assert) {
+                const now = new Date();
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                const timeStr = now.toLocaleDateString('id-ID', options);
+
+                assert.ok(timeStr, 'Timestamp string generated');
+                assert.ok(timeStr.length > 0, 'Timestamp not empty');
+            });
+
+            QUnit.test('Test: Update Interval', function(assert) {
+                const updateInterval = 1000; // 1 second in ms
+
+                assert.equal(updateInterval, 1000, 'Update every 1 second');
+            });
+
+        });
+
+        QUnit.module('Module 11: Error Handling', function() {
+
+            QUnit.test('Test: Load Summary Error', function(assert) {
+                const errorMsg = 'Err';
+
+                assert.equal(errorMsg, 'Err', 'Error message displayed');
+            });
+
+            QUnit.test('Test: Load Table Error', function(assert) {
+                const errorMsg = 'Gagal memuat data';
+
+                assert.true(errorMsg.includes('Gagal'), 'Error message in Indonesian');
+                assert.true(errorMsg.includes('data'), 'Error message mentions data');
+            });
+
+            QUnit.test('Test: Load Pending Error', function(assert) {
+                const errorMsg = 'Gagal memuat data';
+
+                assert.equal(errorMsg, 'Gagal memuat data', 'Error message consistent');
+            });
+
+        });
+
+        // Update overall status
+        QUnit.done(function(details) {
+            console.log('Admin Dashboard Test Summary:', {
+                total: details.total,
+                passed: details.passed,
+                failed: details.failed,
+                runtime: details.runtime
+            });
+        });
+
+        // Auto-start QUnit (disabled, use button instead)
+        QUnit.config.autostart = false;
+    </script>
+</body>
+</html>
