@@ -449,7 +449,7 @@ async function submitAbsensi(tipe) {
 
     isSubmitting = true;
     showLoading(true);
-    disableButtons(true);
+    // Note: tombol tidak di-disable, hanya loading overlay yang muncul
 
     console.log('⏳ Starting submit process...');
 
@@ -529,9 +529,8 @@ async function submitAbsensi(tipe) {
 
         showNotification('❌ Gagal mengirim data. Coba lagi.', true);
 
-        // Re-enable buttons ONLY on error
+        // Re-enable state on error
         showLoading(false);
-        disableButtons(false);
         isSubmitting = false;
         console.log('=== SUBMIT ABSENSI END (ERROR) ===');
     }
