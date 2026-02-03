@@ -410,10 +410,17 @@ async function submitAbsensi(tipe) {
     console.log('Tombol MASUK disabled?', elements.btnMasuk.disabled);
     console.log('Tombol PULANG disabled?', elements.btnPulang.disabled);
 
-    // Prevent double submit
+    // Prevent double submit - check both isSubmitting flag and button state
     if (isSubmitting) {
         console.log('⚠️ Already submitting...');
         alert('Sedang memproses, harap tunggu...');
+        return;
+    }
+
+    // Check if this specific button is already disabled
+    const clickedBtn = tipe === 'MASUK' ? elements.btnMasuk : elements.btnPulang;
+    if (clickedBtn.disabled || clickedBtn.classList.contains('btn-disabled')) {
+        console.log('⚠️ Button already disabled, ignoring click...');
         return;
     }
 
@@ -531,6 +538,10 @@ async function submitAbsensi(tipe) {
             retakePhoto();
         }
 
+        showLoading(false);
+        isSubmitting = false;
+        console.log('=== SUBMIT ABSENSI END ===');
+
     } catch (error) {
         console.error('❌ Submit error:', error);
         console.error('Error details:', error.message);
@@ -539,11 +550,12 @@ async function submitAbsensi(tipe) {
         alert(`❌ Gagal mengirim absensi!\n\nError: ${error.message}\n\nSilakan coba lagi atau hubungi admin.`);
 
         showNotification('❌ Gagal mengirim data. Coba lagi.', true);
-    } finally {
+
+        // Re-enable buttons ONLY on error
         showLoading(false);
         disableButtons(false);
         isSubmitting = false;
-        console.log('=== SUBMIT ABSENSI END ===');
+        console.log('=== SUBMIT ABSENSI END (ERROR) ===');
     }
 }
 
@@ -623,8 +635,20 @@ function showLoading(show) {
 }
 
 function disableButtons(disabled) {
+    // Disable buttons
     elements.btnMasuk.disabled = disabled;
     elements.btnPulang.disabled = disabled;
+
+    // Visual disable - tambahkan class untuk override
+    if (disabled) {
+        elements.btnMasuk.classList.add('btn-disabled');
+        elements.btnPulang.classList.add('btn-disabled');
+    } else {
+        elements.btnMasuk.classList.remove('btn-disabled');
+        elements.btnPulang.classList.remove('btn-disabled');
+    }
+
+    console.log('Buttons disabled:', disabled, 'MASUK:', elements.btnMasuk.disabled, 'PULANG:', elements.btnPulang.disabled);
 }
 
 function showNotification(message, isError = false) {

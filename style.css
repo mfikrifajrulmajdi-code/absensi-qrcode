@@ -704,3 +704,18 @@ body {
     transform: none !important;
     box-shadow: none !important;
 }
+
+/* Visual disable class (extra protection) */
+.btn-disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove hover effects when disabled */
+.btn-disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
