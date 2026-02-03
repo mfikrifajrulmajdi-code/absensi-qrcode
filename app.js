@@ -350,19 +350,6 @@ function updateAbsensiStatus(status) {
     console.log('✅ Buttons always enabled (no disable logic)');
 }
 
-// Helper function to set button state (disabled + visual class)
-function setButtonState(button, disabled) {
-    button.disabled = disabled;
-
-    if (disabled) {
-        button.classList.add('btn-disabled');
-        console.log('Button disabled with class:', button.className);
-    } else {
-        button.classList.remove('btn-disabled');
-        console.log('Button enabled:', button.className);
-    }
-}
-
 // ==========================================
 // DEVICE DETECTION
 // ==========================================
@@ -609,23 +596,6 @@ function showLoading(show) {
     } else {
         elements.loadingOverlay.classList.remove('show');
     }
-}
-
-function disableButtons(disabled) {
-    // Disable buttons
-    elements.btnMasuk.disabled = disabled;
-    elements.btnPulang.disabled = disabled;
-
-    // Visual disable - tambahkan class untuk override
-    if (disabled) {
-        elements.btnMasuk.classList.add('btn-disabled');
-        elements.btnPulang.classList.add('btn-disabled');
-    } else {
-        elements.btnMasuk.classList.remove('btn-disabled');
-        elements.btnPulang.classList.remove('btn-disabled');
-    }
-
-    console.log('Buttons disabled:', disabled, 'MASUK:', elements.btnMasuk.disabled, 'PULANG:', elements.btnPulang.disabled);
 }
 
 function showNotification(message, isError = false) {
