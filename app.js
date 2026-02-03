@@ -356,7 +356,10 @@ function getDeviceInfo() {
 
 async function submitAbsensi(tipe) {
     // Prevent double submit
-    if (isSubmitting) return;
+    if (isSubmitting) {
+        console.log('Already submitting...');
+        return;
+    }
 
     // Check if URL is configured
     if (APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
@@ -368,9 +371,11 @@ async function submitAbsensi(tipe) {
     // Validate photo (required in V2)
     if (!photoData) {
         showNotification('❌ Silakan ambil foto terlebih dahulu!', true);
+        console.error('No photo data');
         return;
     }
 
+    console.log(`Submitting ${tipe}...`);
     isSubmitting = true;
     showLoading(true);
     disableButtons(true);
@@ -391,10 +396,17 @@ async function submitAbsensi(tipe) {
         photo: photoData  // Base64 image
     };
 
+    console.log('Sending data:', {
+        nama: data.nama,
+        tipe: data.tipe,
+        hasLocation: !!(data.latitude && data.longitude),
+        photoSize: data.photo ? data.photo.length : 0
+    });
+
     try {
         // Send to Google Apps Script
         // Using no-cors mode because Google Apps Script doesn't send CORS headers
-        await fetch(APPS_SCRIPT_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -403,6 +415,8 @@ async function submitAbsensi(tipe) {
             body: JSON.stringify(data)
         });
 
+        console.log('Fetch completed, response:', response);
+
         // With no-cors, we can't read the response, but request is sent
         // Show success (assuming it worked)
         const successMsg = tipe === 'MASUK'
@@ -410,6 +424,7 @@ async function submitAbsensi(tipe) {
             : '✅ Absensi PULANG berhasil!';
 
         showNotification(successMsg, false);
+        console.log('Success notification shown');
 
         // Visual feedback on button
         const btn = tipe === 'MASUK' ? elements.btnMasuk : elements.btnPulang;
@@ -418,6 +433,7 @@ async function submitAbsensi(tipe) {
 
         // Refresh status after successful submit
         setTimeout(async () => {
+            console.log('Refreshing absensi status...');
             await checkAbsensiStatus();
         }, 1000);
 
@@ -433,6 +449,7 @@ async function submitAbsensi(tipe) {
         showLoading(false);
         disableButtons(false);
         isSubmitting = false;
+        console.log('Submit process completed');
     }
 }
 

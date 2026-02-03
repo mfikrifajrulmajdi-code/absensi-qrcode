@@ -236,8 +236,14 @@
                     value="http://localhost:8000/index.html">
             </div>
             <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                ℹ️ Untuk testing lokal, gunakan <code>http://localhost:8000/index.html</code>
+                ℹ️ Untuk testing lokal, gunakan <code>http://localhost:8000/index.html</code><br>
+                💾 Data akan otomatis disimpan setelah generate QR
             </p>
+            <div style="margin-top: 15px;">
+                <button class="btn" style="padding: 10px 20px; font-size: 0.9rem; background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5); color: #e74c3c;" onclick="resetSavedData()">
+                    🗑️ Reset Data Tersimpan
+                </button>
+            </div>
         </div>
 
         <!-- Input Card -->
@@ -310,11 +316,59 @@
     <script>
         let currentUrl = '';
 
+        // Load saved data from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+        });
+
+        function loadSavedData() {
+            const savedBaseUrl = localStorage.getItem('qr_baseUrl');
+            const savedPerusahaan = localStorage.getItem('qr_perusahaan');
+            const savedLogo = localStorage.getItem('qr_logo');
+
+            if (savedBaseUrl) {
+                document.getElementById('baseUrl').value = savedBaseUrl;
+            }
+            if (savedPerusahaan) {
+                document.getElementById('perusahaan').value = savedPerusahaan;
+            }
+            if (savedLogo) {
+                document.getElementById('logo').value = savedLogo;
+            }
+        }
+
+        function saveData() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const perusahaan = document.getElementById('perusahaan').value.trim();
+            const logo = document.getElementById('logo').value.trim();
+
+            localStorage.setItem('qr_baseUrl', baseUrl);
+            localStorage.setItem('qr_perusahaan', perusahaan);
+            localStorage.setItem('qr_logo', logo);
+        }
+
+        function resetSavedData() {
+            if (confirm('Reset semua data tersimpan?')) {
+                localStorage.removeItem('qr_baseUrl');
+                localStorage.removeItem('qr_perusahaan');
+                localStorage.removeItem('qr_logo');
+
+                document.getElementById('baseUrl').value = 'http://localhost:8000/index.html';
+                document.getElementById('perusahaan').value = '';
+                document.getElementById('logo').value = '';
+
+                alert('Data berhasil di-reset!');
+            }
+        }
+
         function generateQR() {
             const baseUrl = document.getElementById('baseUrl').value.trim();
             const nama = document.getElementById('nama').value.trim();
             const perusahaan = document.getElementById('perusahaan').value.trim();
             const logo = document.getElementById('logo').value.trim();
+
+            // Save data to localStorage
+            saveData();
 
             // Validation
             if (!baseUrl) {
