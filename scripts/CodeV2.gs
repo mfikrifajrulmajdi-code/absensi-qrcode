@@ -268,13 +268,17 @@ function autoFixLupaAbsen(nama) {
 function checkAbsensiHariIni(nama) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
   if (!sheet) {
+    Logger.log("Sheet 'Absensi' tidak ditemukan");
     return createJSONResponse({ hasMasuk: false, hasPulang: false, jamMasuk: "", jamPulang: "" });
   }
 
   var data = sheet.getDataRange().getValues();
+  Logger.log("Total rows: " + data.length);
+  Logger.log("Looking for nama: " + nama);
 
   var today = new Date();
   var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
+  Logger.log("Today string: " + todayStr);
 
   var hasMasuk = false;
   var hasPulang = false;
@@ -283,28 +287,64 @@ function checkAbsensiHariIni(nama) {
 
   // Check dari baris paling baru (reverse)
   for (var i = data.length - 1; i >= 1; i--) {
-    // Format date object ke string sebelum compare
-    var rowDate = Utilities.formatDate(data[i][0], "Asia/Jakarta", "yyyy-MM-dd");
+    var rowTimestamp = data[i][0];
+    var rowNama = data[i][1];
+    var rowTipe = data[i][2];
+    
+    // Handle both Date object and string timestamp
+    var rowDate;
+    var rowTime;
+    
+    if (rowTimestamp instanceof Date) {
+      // It's a Date object
+      rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+      rowTime = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "HH:mm");
+    } else if (typeof rowTimestamp === 'string') {
+      // It's a string like "2026-02-04 3:37:25"
+      rowDate = rowTimestamp.substring(0, 10); // Get "2026-02-04"
+      // Extract time from string
+      var timePart = rowTimestamp.substring(11).trim();
+      var timeParts = timePart.split(':');
+      if (timeParts.length >= 2) {
+        var hour = timeParts[0].padStart(2, '0');
+        var minute = timeParts[1].padStart(2, '0');
+        rowTime = hour + ':' + minute;
+      } else {
+        rowTime = timePart;
+      }
+    } else {
+      // Unknown format, skip
+      continue;
+    }
 
-    if (rowDate === todayStr && data[i][1] === nama) {
-      if (data[i][2] === 'MASUK' && !hasMasuk) {
+    Logger.log("Row " + i + ": date=" + rowDate + ", nama=" + rowNama + ", tipe=" + rowTipe);
+
+    if (rowDate === todayStr && rowNama === nama) {
+      Logger.log("MATCH found! Tipe: " + rowTipe);
+      if (rowTipe === 'MASUK' && !hasMasuk) {
         hasMasuk = true;
-        jamMasuk = Utilities.formatDate(data[i][0], "Asia/Jakarta", "HH:mm");
-      } else if (data[i][2] === 'PULANG') {
+        jamMasuk = rowTime;
+        Logger.log("Set hasMasuk=true, jamMasuk=" + jamMasuk);
+      } else if (rowTipe === 'PULANG' && !hasPulang) {
         hasPulang = true;
-        jamPulang = Utilities.formatDate(data[i][0], "Asia/Jakarta", "HH:mm");
+        jamPulang = rowTime;
+        Logger.log("Set hasPulang=true, jamPulang=" + jamPulang);
       }
     } else if (rowDate < todayStr) {
+      Logger.log("Past date found, stopping search");
       break; // Stop jika sudah lewat hari ini
     }
   }
 
-  return createJSONResponse({
+  var result = {
     hasMasuk: hasMasuk,
     hasPulang: hasPulang,
     jamMasuk: jamMasuk,
     jamPulang: jamPulang
-  });
+  };
+  Logger.log("Final result: " + JSON.stringify(result));
+  
+  return createJSONResponse(result);
 }
 
 // ============================================
