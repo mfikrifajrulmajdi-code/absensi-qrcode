@@ -168,6 +168,8 @@ function doGet(e) {
 
 /**
  * Validasi absensi sebelum submit
+ * Support lembur: izinkan multiple MASUK/PULANG dalam sehari
+ * Validasi: MASUK → PULANG → MASUK → PULANG → ...
  */
 function validateAbsensi(nama, tipe) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
@@ -179,41 +181,54 @@ function validateAbsensi(nama, tipe) {
   var today = new Date();
   var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
 
-  var hasMasuk = false;
-  var hasPulang = false;
-
-  // Check hari ini (reverse dari row terbaru)
+  // Cari entry TERAKHIR hari ini untuk nama ini
+  var lastEntryType = null; // null = belum ada entry, 'MASUK', atau 'PULANG'
+  
   for (var i = data.length - 1; i >= 1; i--) {
-    // Format date object ke string sebelum compare
-    var rowDate = Utilities.formatDate(data[i][0], "Asia/Jakarta", "yyyy-MM-dd");
-
-    if (rowDate === todayStr && data[i][1] === nama) {
-      if (data[i][2] === 'MASUK' && !hasMasuk) {
-        hasMasuk = true;
-      } else if (data[i][2] === 'PULANG') {
-        hasPulang = true;
-      }
-    } else if (rowDate < todayStr) {
+    var rowTimestamp = data[i][0];
+    var rowNama = data[i][1];
+    var rowTipe = data[i][2];
+    
+    // Handle both Date object and string timestamp
+    var rowDate;
+    if (rowTimestamp instanceof Date) {
+      rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+    } else if (typeof rowTimestamp === 'string') {
+      rowDate = rowTimestamp.substring(0, 10);
+    } else {
+      continue;
+    }
+    
+    if (rowDate === todayStr && rowNama === nama) {
+      // Ini entry terakhir untuk hari ini (karena loop dari belakang)
+      lastEntryType = rowTipe;
       break;
+    } else if (rowDate < todayStr) {
+      break; // Sudah lewat hari ini, tidak ada entry
     }
   }
 
-  // Validasi
-  if (tipe === 'MASUK' && hasMasuk) {
-    return { valid: false, message: "Sudah absen MASUK hari ini. Untuk lembur, silakan hubungi admin." };
+  Logger.log("Validate - Nama: " + nama + ", Tipe: " + tipe + ", LastEntry: " + lastEntryType);
+
+  // Validasi berdasarkan entry terakhir
+  if (tipe === 'MASUK') {
+    if (lastEntryType === 'MASUK') {
+      // Sudah MASUK, belum PULANG
+      return { valid: false, message: "Anda sudah MASUK dan belum PULANG. Silakan absen PULANG dulu." };
+    }
+    // lastEntryType null (belum absen) atau 'PULANG' → bisa MASUK
   }
 
-  if (tipe === 'PULANG' && !hasMasuk) {
-    return { valid: false, message: "Belum absen MASUK hari ini." };
-  }
-
-  if (tipe === 'PULANG' && hasPulang) {
-    return { valid: false, message: "Sudah absen PULANG hari ini." };
-  }
-
-  // Check jika lupa absen kemarin, auto-fix
-  if (hasMasuk && !hasPulang && tipe === 'MASUK') {
-    autoFixLupaAbsen(nama);
+  if (tipe === 'PULANG') {
+    if (lastEntryType === null) {
+      // Belum ada entry sama sekali
+      return { valid: false, message: "Belum absen MASUK hari ini." };
+    }
+    if (lastEntryType === 'PULANG') {
+      // Terakhir PULANG, belum MASUK lagi
+      return { valid: false, message: "Anda sudah PULANG. Silakan absen MASUK dulu untuk sesi berikutnya." };
+    }
+    // lastEntryType 'MASUK' → bisa PULANG
   }
 
   return { valid: true };
@@ -263,13 +278,14 @@ function autoFixLupaAbsen(nama) {
 
 // ============================================
 // CHECK STATUS - Cek status absensi hari ini
+// Support lembur: return status sesi terakhir
 // ============================================
 
 function checkAbsensiHariIni(nama) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
   if (!sheet) {
     Logger.log("Sheet 'Absensi' tidak ditemukan");
-    return createJSONResponse({ hasMasuk: false, hasPulang: false, jamMasuk: "", jamPulang: "" });
+    return createJSONResponse({ hasMasuk: false, hasPulang: false, jamMasuk: "", jamPulang: "", sesiKe: 0 });
   }
 
   var data = sheet.getDataRange().getValues();
@@ -280,12 +296,9 @@ function checkAbsensiHariIni(nama) {
   var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
   Logger.log("Today string: " + todayStr);
 
-  var hasMasuk = false;
-  var hasPulang = false;
-  var jamMasuk = '';
-  var jamPulang = '';
-
-  // Check dari baris paling baru (reverse)
+  // Kumpulkan semua entry hari ini untuk user ini
+  var todayEntries = [];
+  
   for (var i = data.length - 1; i >= 1; i--) {
     var rowTimestamp = data[i][0];
     var rowNama = data[i][1];
@@ -296,13 +309,10 @@ function checkAbsensiHariIni(nama) {
     var rowTime;
     
     if (rowTimestamp instanceof Date) {
-      // It's a Date object
       rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
       rowTime = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "HH:mm");
     } else if (typeof rowTimestamp === 'string') {
-      // It's a string like "2026-02-04 3:37:25"
-      rowDate = rowTimestamp.substring(0, 10); // Get "2026-02-04"
-      // Extract time from string
+      rowDate = rowTimestamp.substring(0, 10);
       var timePart = rowTimestamp.substring(11).trim();
       var timeParts = timePart.split(':');
       if (timeParts.length >= 2) {
@@ -313,34 +323,57 @@ function checkAbsensiHariIni(nama) {
         rowTime = timePart;
       }
     } else {
-      // Unknown format, skip
       continue;
     }
 
-    Logger.log("Row " + i + ": date=" + rowDate + ", nama=" + rowNama + ", tipe=" + rowTipe);
-
     if (rowDate === todayStr && rowNama === nama) {
-      Logger.log("MATCH found! Tipe: " + rowTipe);
-      if (rowTipe === 'MASUK' && !hasMasuk) {
-        hasMasuk = true;
-        jamMasuk = rowTime;
-        Logger.log("Set hasMasuk=true, jamMasuk=" + jamMasuk);
-      } else if (rowTipe === 'PULANG' && !hasPulang) {
-        hasPulang = true;
-        jamPulang = rowTime;
-        Logger.log("Set hasPulang=true, jamPulang=" + jamPulang);
-      }
+      todayEntries.push({ tipe: rowTipe, jam: rowTime });
     } else if (rowDate < todayStr) {
-      Logger.log("Past date found, stopping search");
-      break; // Stop jika sudah lewat hari ini
+      break;
     }
+  }
+
+  // Reverse untuk urutan kronologis (entry pertama = paling awal)
+  todayEntries.reverse();
+  
+  Logger.log("Today entries: " + JSON.stringify(todayEntries));
+
+  // Hitung sesi (1 sesi = 1 pair MASUK-PULANG)
+  var sesiCount = 0;
+  var lastType = null;
+  var lastMasukJam = '';
+  var lastPulangJam = '';
+  
+  for (var j = 0; j < todayEntries.length; j++) {
+    var entry = todayEntries[j];
+    if (entry.tipe === 'MASUK') {
+      sesiCount++;
+      lastMasukJam = entry.jam;
+      lastPulangJam = ''; // Reset pulang untuk sesi baru
+      lastType = 'MASUK';
+    } else if (entry.tipe === 'PULANG') {
+      lastPulangJam = entry.jam;
+      lastType = 'PULANG';
+    }
+  }
+
+  // Tentukan status berdasarkan entry terakhir
+  var hasMasuk = (lastType === 'MASUK'); // Ada sesi aktif (belum pulang)
+  var hasPulang = (lastType === 'PULANG'); // Sudah pulang (sesi selesai)
+  
+  // Jika belum ada entry sama sekali
+  if (todayEntries.length === 0) {
+    hasMasuk = false;
+    hasPulang = false;
   }
 
   var result = {
     hasMasuk: hasMasuk,
     hasPulang: hasPulang,
-    jamMasuk: jamMasuk,
-    jamPulang: jamPulang
+    jamMasuk: lastMasukJam,
+    jamPulang: lastPulangJam,
+    sesiKe: sesiCount,
+    totalEntry: todayEntries.length
   };
   Logger.log("Final result: " + JSON.stringify(result));
   

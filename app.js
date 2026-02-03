@@ -327,17 +327,25 @@ async function checkAbsensiStatus() {
 function updateAbsensiStatus(status) {
     console.log('Updating UI with status from Google Sheets:', status);
 
+    // Hitung sesi (dari backend jika ada, atau default 1)
+    const sesi = status.sesiKe || 1;
+    const sesiText = sesi > 1 ? ` (Sesi ${sesi})` : '';
+
     // Update status message BERDASARKAN DATA dari Google Sheets
-    // Tombol TIDAK PERNAH disabled (selalu bisa diklik)
-    if (status.hasMasuk && status.hasPulang) {
-        // Sudah lengkap
-        console.log('✅ Status: Sudah lengkap (from Google Sheets)');
-        elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
+    // Logika baru: hasMasuk=true berarti sedang aktif (belum pulang), hasPulang=true berarti sudah selesai
+    if (status.hasPulang) {
+        // Sudah PULANG - bisa MASUK lagi untuk lembur
+        console.log('✅ Status: Sudah PULANG (siap untuk sesi berikutnya)');
+        elements.absenStatus.innerHTML = `✅ <strong>Sudah absen PULANG${sesiText}</strong><br>` +
+            `Jam: ${status.jamMasuk} - ${status.jamPulang}<br>` +
+            `<small>Untuk lembur, klik MASUK lagi.</small>`;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
-        // Sudah MASUK, belum PULANG
-        console.log('✅ Status: Sudah MASUK (from Google Sheets)');
-        elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
+        // Sudah MASUK, belum PULANG - dalam sesi aktif
+        console.log('✅ Status: Sudah MASUK, belum PULANG');
+        elements.absenStatus.innerHTML = `✅ <strong>Sudah absen MASUK${sesiText}</strong><br>` +
+            `Jam: ${status.jamMasuk}<br>` +
+            `Silakan absen PULANG.`;
         elements.absenStatus.className = 'absen-status info';
     } else {
         // Belum absen sama sekali
