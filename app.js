@@ -383,6 +383,8 @@ function getDeviceInfo() {
 async function submitAbsensi(tipe) {
     console.log('=== SUBMIT ABSENSI START ===');
     console.log('Tipe:', tipe);
+    console.log('Tombol MASUK disabled?', elements.btnMasuk.disabled);
+    console.log('Tombol PULANG disabled?', elements.btnPulang.disabled);
 
     // Prevent double submit
     if (isSubmitting) {
