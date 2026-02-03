@@ -385,17 +385,24 @@ function checkAbsensiHariIni(nama) {
 // ============================================
 
 function getSummaryHariIni() {
+  Logger.log("=== getSummaryHariIni START ===");
+  
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
   if (!sheet) {
+    Logger.log("Sheet Absensi tidak ditemukan!");
     return createJSONResponse({ masuk: 0, pulang: 0, belum: 0 });
   }
 
   var data = sheet.getDataRange().getValues();
   var today = new Date();
   var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
+  
+  Logger.log("Today: " + todayStr);
+  Logger.log("Total rows: " + data.length);
 
   // Kumpulkan status per karyawan hari ini
   var karyawanStatus = {}; // { nama: { hasMasuk: bool, hasPulang: bool } }
+  var debugCount = 0;
 
   for (var i = 1; i < data.length; i++) {
     var rowTimestamp = data[i][0];
@@ -403,13 +410,24 @@ function getSummaryHariIni() {
     var rowTipe = data[i][2];
 
     // Handle both Date object and string timestamp
-    var rowDate;
+    var rowDate = "";
+    
     if (rowTimestamp instanceof Date) {
       rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
-    } else if (typeof rowTimestamp === 'string') {
+    } else if (typeof rowTimestamp === 'string' && rowTimestamp.length >= 10) {
       rowDate = rowTimestamp.substring(0, 10);
     } else {
+      // Log format tidak dikenal
+      if (debugCount < 3) {
+        Logger.log("Row " + i + " - Unknown timestamp format: " + typeof rowTimestamp + " = " + rowTimestamp);
+        debugCount++;
+      }
       continue;
+    }
+
+    // Log beberapa row untuk debug
+    if (i <= 5 || rowDate === todayStr) {
+      Logger.log("Row " + i + ": date=" + rowDate + ", nama=" + rowNama + ", tipe=" + rowTipe + ", match=" + (rowDate === todayStr));
     }
 
     if (rowDate === todayStr && rowNama) {
@@ -424,32 +442,23 @@ function getSummaryHariIni() {
     }
   }
 
+  Logger.log("Karyawan ditemukan hari ini: " + JSON.stringify(karyawanStatus));
+
   // Hitung total
   var totalMasuk = 0;
   var totalPulang = 0;
-  var totalBelum = 0;
 
-  // Hitung karyawan yang sudah absen hari ini
   for (var nama in karyawanStatus) {
     var status = karyawanStatus[nama];
     if (status.hasMasuk) totalMasuk++;
     if (status.hasPulang) totalPulang++;
   }
 
-  // Untuk "Belum Absen", kita perlu daftar karyawan
-  // Coba baca dari sheet "Karyawan" jika ada
-  var sheetKaryawan = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Karyawan");
-  if (sheetKaryawan) {
-    var dataKaryawan = sheetKaryawan.getDataRange().getValues();
-    var totalKaryawan = dataKaryawan.length - 1; // minus header
-    totalBelum = totalKaryawan - totalMasuk;
-    if (totalBelum < 0) totalBelum = 0;
-  } else {
-    // Jika tidak ada sheet Karyawan, belum = 0 (tidak bisa dihitung)
-    totalBelum = 0;
-  }
+  // Untuk saat ini, belum = 0 (karena user tidak butuh sheet Karyawan)
+  var totalBelum = 0;
 
-  Logger.log("Summary: masuk=" + totalMasuk + ", pulang=" + totalPulang + ", belum=" + totalBelum);
+  Logger.log("Result: masuk=" + totalMasuk + ", pulang=" + totalPulang + ", belum=" + totalBelum);
+  Logger.log("=== getSummaryHariIni END ===");
   
   return createJSONResponse({
     masuk: totalMasuk,
