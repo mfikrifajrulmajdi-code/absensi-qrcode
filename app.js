@@ -355,30 +355,39 @@ function getDeviceInfo() {
 // ==========================================
 
 async function submitAbsensi(tipe) {
+    console.log('=== SUBMIT ABSENSI START ===');
+    console.log('Tipe:', tipe);
+
     // Prevent double submit
     if (isSubmitting) {
-        console.log('Already submitting...');
+        console.log('⚠️ Already submitting...');
+        alert('Sedang memproses, harap tunggu...');
         return;
     }
 
     // Check if URL is configured
     if (APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-        showNotification('⚠️ URL Apps Script belum dikonfigurasi!', true);
-        console.error('Please set APPS_SCRIPT_URL in app.js');
+        alert('⚠️ URL Apps Script belum dikonfigurasi!\nSilakan hubungi admin.');
+        console.error('URL not configured');
         return;
     }
 
     // Validate photo (required in V2)
     if (!photoData) {
-        showNotification('❌ Silakan ambil foto terlebih dahulu!', true);
+        alert('❌ Silakan ambil foto terlebih dahulu!');
         console.error('No photo data');
         return;
     }
 
-    console.log(`Submitting ${tipe}...`);
+    console.log('✅ Validation passed');
+    console.log('Nama:', employeeData.nama);
+    console.log('Photo size:', photoData.length);
+
     isSubmitting = true;
     showLoading(true);
     disableButtons(true);
+
+    console.log('⏳ Starting submit process...');
 
     // Get device info
     const deviceInfo = getDeviceInfo();
@@ -443,13 +452,18 @@ async function submitAbsensi(tipe) {
         }
 
     } catch (error) {
-        console.error('Submit error:', error);
+        console.error('❌ Submit error:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
+
+        alert(`❌ Gagal mengirim absensi!\n\nError: ${error.message}\n\nSilakan coba lagi atau hubungi admin.`);
+
         showNotification('❌ Gagal mengirim data. Coba lagi.', true);
     } finally {
         showLoading(false);
         disableButtons(false);
         isSubmitting = false;
-        console.log('Submit process completed');
+        console.log('=== SUBMIT ABSENSI END ===');
     }
 }
 
