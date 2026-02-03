@@ -267,6 +267,13 @@ function displayLocationError() {
 
 async function checkAbsensiStatus() {
     console.log('=== CHECKING ABSENSI STATUS ===');
+
+    // Safety check
+    if (!employeeData || !employeeData.nama) {
+        console.error('❌ No employee data!');
+        return;
+    }
+
     try {
         const nama = encodeURIComponent(employeeData.nama);
         const url = `${APPS_SCRIPT_URL}?action=checkStatus&nama=${nama}`;
@@ -275,6 +282,10 @@ async function checkAbsensiStatus() {
         const response = await fetch(url);
         console.log('Response status:', response.status);
         console.log('Response ok:', response.ok);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
         console.log('Status result:', result);
@@ -455,11 +466,23 @@ async function submitAbsensi(tipe) {
         btn.classList.add('success');
         setTimeout(() => btn.classList.remove('success'), 300);
 
-        // Refresh status after successful submit
-        setTimeout(async () => {
-            console.log('Refreshing absensi status...');
-            await checkAbsensiStatus();
-        }, 1000);
+        // DISABLE AUTO-REFRESH DULU - untuk testing
+        // Kita akan refresh status manual dengan menekan tombol "Lihat Riwayat" atau refresh halaman
+        console.log('✅ Submit completed. Status will be updated on page refresh.');
+        console.log('💡 Tip: Refresh halaman (F5) untuk melihat status terbaru.');
+
+        // Refresh status after successful submit - DISABLED FOR TESTING
+        // setTimeout(async () => {
+        //     console.log('Refreshing absensi status...');
+        //
+        //     // Cek lagi apakah masih dalam mode submit untuk prevention
+        //     if (isSubmitting) {
+        //         console.warn('⚠️ Still in submitting mode, skipping status check');
+        //         return;
+        //     }
+        //
+        //     await checkAbsensiStatus();
+        // }, 1000);
 
         // Clear photo after successful submit
         if (tipe === 'PULANG') {
