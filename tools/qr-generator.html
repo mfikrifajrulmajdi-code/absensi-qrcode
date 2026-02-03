@@ -227,49 +227,54 @@
             <p class="subtitle">Generate QR Code untuk Sistem Absensi Karyawan</p>
         </header>
 
-        <!-- Configuration Card -->
+        <!-- Section 1: Konfigurasi Perusahaan -->
         <div class="card">
-            <h2 class="card-title">⚙️ Konfigurasi</h2>
-            <div class="form-group">
-                <label for="baseUrl">Base URL Halaman Absensi</label>
-                <input type="url" id="baseUrl" placeholder="https://username.github.io/absensi-qrcode/src/index.html"
-                    value="http://localhost:8000/index.html">
-            </div>
-            <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                ℹ️ Untuk testing lokal, gunakan <code>http://localhost:8000/index.html</code><br>
-                💾 Data akan otomatis disimpan setelah generate QR
+            <h2 class="card-title">🏢 Konfigurasi Perusahaan</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                Setup data perusahaan sekali di awal. Data akan tersimpan otomatis.
             </p>
-            <div style="margin-top: 15px;">
-                <button class="btn" style="padding: 10px 20px; font-size: 0.9rem; background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5); color: #e74c3c;" onclick="resetSavedData()">
-                    🗑️ Reset Data Tersimpan
-                </button>
-            </div>
-        </div>
 
-        <!-- Input Card -->
-        <div class="card">
-            <h2 class="card-title">👤 Data Karyawan</h2>
             <div class="form-group">
-                <label for="nama">Nama Karyawan *</label>
-                <input type="text" id="nama" placeholder="Contoh: Budi Santoso" required>
+                <label for="baseUrl">Link Web Halaman Absensi *</label>
+                <input type="url" id="baseUrl" placeholder="https://username.github.io/absensi-qrcode/"
+                    value="https://mfikrifajrulmajdi-code.github.io/absensi-qrcode/">
             </div>
-        </div>
 
-        <!-- Company Card -->
-        <div class="card">
-            <h2 class="card-title">🏢 Branding Perusahaan</h2>
             <div class="form-group">
                 <label for="perusahaan">Nama Perusahaan</label>
                 <input type="text" id="perusahaan" placeholder="Contoh: PT. Teknologi Maju">
             </div>
+
             <div class="form-group">
                 <label for="logo">URL Logo Perusahaan</label>
                 <input type="url" id="logo" placeholder="https://example.com/logo.png">
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 5px;">
-                    ℹ️ Masukkan URL gambar logo (PNG/JPG). Kosongkan jika tidak ada.
-                </p>
             </div>
-            <button class="btn btn-primary" onclick="generateQR()">
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="saveCompanyData()">
+                    💾 Simpan Data Perusahaan
+                </button>
+                <button class="btn" style="padding: 10px 20px; font-size: 0.9rem; background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5); color: #e74c3c;" onclick="resetSavedData()">
+                    🗑️ Reset
+                </button>
+            </div>
+
+            <div id="saveStatus" style="margin-top: 10px; font-size: 0.9rem;"></div>
+        </div>
+
+        <!-- Section 2: Generate QR per Karyawan -->
+        <div class="card">
+            <h2 class="card-title">👤 Generate QR Code Karyawan</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                Masukkan nama karyawan untuk generate QR Code. Data perusahaan akan otomatis terisi.
+            </p>
+
+            <div class="form-group">
+                <label for="nama">Nama Karyawan *</label>
+                <input type="text" id="nama" placeholder="Contoh: Budi Santoso" required>
+            </div>
+
+            <button class="btn btn-success" onclick="generateQR()" style="width: 100%; margin-top: 10px;">
                 🔲 Generate QR Code
             </button>
         </div>
@@ -282,6 +287,7 @@
                 <div id="qrcode"></div>
                 <div class="qr-label">
                     <div class="name" id="labelName">-</div>
+                    <div class="desk" id="labelPerusahaan">-</div>
                 </div>
             </div>
 
@@ -303,11 +309,22 @@
             <div class="info-box">
                 <h4>Langkah-langkah:</h4>
                 <ol>
-                    <li>Pastikan Base URL sudah benar (localhost untuk test, GitHub Pages untuk production)</li>
-                    <li>Masukkan nama karyawan</li>
-                    <li>Klik "Generate QR Code"</li>
-                    <li>Download dan cetak QR Code</li>
-                    <li>Berikan ke karyawan</li>
+                    <li><strong>Setup Perusahaan (Sekali):</strong>
+                        <ul>
+                            <li>Masukkan Link Web halaman absensi</li>
+                            <li>Masukkan Nama Perusahaan (opsional)</li>
+                            <li>Masukkan URL Logo (opsional)</li>
+                            <li>Klik "💾 Simpan Data Perusahaan"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Generate QR (Berulang):</strong>
+                        <ul>
+                            <li>Masukkan nama karyawan</li>
+                            <li>Klik "🔲 Generate QR Code"</li>
+                            <li>Download dan cetak QR Code</li>
+                            <li>Ulangi untuk karyawan berikutnya (data perusahaan sudah tersimpan)</li>
+                        </ul>
+                    </li>
                 </ol>
             </div>
         </div>
@@ -328,6 +345,7 @@
 
             if (savedBaseUrl) {
                 document.getElementById('baseUrl').value = savedBaseUrl;
+                showSaveStatus('✅ Data perusahaan dimuat dari penyimpanan', 'success');
             }
             if (savedPerusahaan) {
                 document.getElementById('perusahaan').value = savedPerusahaan;
@@ -337,14 +355,33 @@
             }
         }
 
-        function saveData() {
+        function saveCompanyData() {
             const baseUrl = document.getElementById('baseUrl').value.trim();
             const perusahaan = document.getElementById('perusahaan').value.trim();
             const logo = document.getElementById('logo').value.trim();
 
+            if (!baseUrl) {
+                showSaveStatus('❌ Link Web wajib diisi!', 'error');
+                return;
+            }
+
+            // Save to localStorage
             localStorage.setItem('qr_baseUrl', baseUrl);
             localStorage.setItem('qr_perusahaan', perusahaan);
             localStorage.setItem('qr_logo', logo);
+
+            showSaveStatus('✅ Data perusahaan berhasil disimpan!', 'success');
+        }
+
+        function showSaveStatus(message, type) {
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.textContent = message;
+            statusEl.style.color = type === 'success' ? '#00d26a' : '#e74c3c';
+
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                statusEl.textContent = '';
+            }, 3000);
         }
 
         function resetSavedData() {
@@ -353,11 +390,11 @@
                 localStorage.removeItem('qr_perusahaan');
                 localStorage.removeItem('qr_logo');
 
-                document.getElementById('baseUrl').value = 'http://localhost:8000/index.html';
+                document.getElementById('baseUrl').value = 'https://mfikrifajrulmajdi-code.github.io/absensi-qrcode/';
                 document.getElementById('perusahaan').value = '';
                 document.getElementById('logo').value = '';
 
-                alert('Data berhasil di-reset!');
+                showSaveStatus('✅ Data berhasil di-reset!', 'success');
             }
         }
 
@@ -367,8 +404,12 @@
             const perusahaan = document.getElementById('perusahaan').value.trim();
             const logo = document.getElementById('logo').value.trim();
 
-            // Save data to localStorage
-            saveData();
+            // Auto-save company data when generating QR
+            if (baseUrl) {
+                localStorage.setItem('qr_baseUrl', baseUrl);
+                localStorage.setItem('qr_perusahaan', perusahaan);
+                localStorage.setItem('qr_logo', logo);
+            }
 
             // Validation
             if (!baseUrl) {
@@ -415,6 +456,7 @@
 
             // Update labels
             document.getElementById('labelName').textContent = nama;
+            document.getElementById('labelPerusahaan').textContent = perusahaan || '-';
             document.getElementById('urlPreview').textContent = currentUrl;
 
             // Show result
