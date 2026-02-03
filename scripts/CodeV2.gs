@@ -707,11 +707,18 @@ function uploadToDrive(base64Image, nama, tipe) {
     // Remove data:image/xxx;base64, prefix
     var base64Data = base64Image.split(',')[1];
 
+    // Format waktu untuk nama file: 2026-02-04_04-49-30
+    var timestamp = new Date();
+    var waktuStr = Utilities.formatDate(timestamp, "Asia/Jakarta", "yyyy-MM-dd_HH-mm-ss");
+    
+    // Format: waktu_status_nama.jpg
+    var filename = waktuStr + '_' + tipe + '_' + nama + '.jpg';
+
     // Decode base64
     var blob = Utilities.newBlob(
       Utilities.base64Decode(base64Data),
       'image/jpeg',
-      nama + '_' + tipe + '_' + new Date().getTime() + '.jpg'
+      filename
     );
 
     // Get or create folder
