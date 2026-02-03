@@ -93,9 +93,35 @@ function renderTable(data) {
 
     let html = '';
     data.forEach(row => {
-        const time = row.timestamp.substring(11, 16);
-        const date = row.timestamp.substring(0, 10);
-        const deviceInfo = `${row.deviceType} - ${row.os}`;
+        // Parse timestamp - handle various formats
+        let time = '';
+        let date = '';
+
+        if (row.timestamp) {
+            const ts = row.timestamp.toString();
+            // Format: "2026-02-04 04:43:59" or Date object string
+            if (ts.includes('-') && ts.length >= 16) {
+                date = ts.substring(0, 10); // 2026-02-04
+                time = ts.substring(11, 16); // 04:43
+            } else {
+                // Try parsing as Date object
+                try {
+                    const d = new Date(ts);
+                    if (!isNaN(d)) {
+                        date = d.toISOString().substring(0, 10);
+                        time = d.toTimeString().substring(0, 5);
+                    } else {
+                        date = ts.substring(0, 10) || '-';
+                        time = ts.substring(11, 16) || '-';
+                    }
+                } catch (e) {
+                    date = '-';
+                    time = '-';
+                }
+            }
+        }
+
+        const deviceInfo = `${row.deviceType || ''} - ${row.os || ''}`;
         const photoLink = row.foto ? `<span class="photo-link" onclick="showPhoto('${row.foto}')">📷 Lihat</span>` : '-';
 
         html += `
@@ -104,15 +130,15 @@ function renderTable(data) {
                     <div style="font-weight: 600;">${time}</div>
                     <div style="font-size: 0.8rem; color: #666;">${date}</div>
                 </td>
-                <td>${row.nama}</td>
+                <td>${row.nama || '-'}</td>
                 <td>
                     <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; ${row.tipe === 'MASUK' ? 'background: #d4edda; color: #155724;' : 'background: #f8d7da; color: #721c24;'}">
-                        ${row.tipe}
+                        ${row.tipe || '-'}
                     </span>
                 </td>
                 <td>
                     <div style="font-size: 0.9rem;">${deviceInfo}</div>
-                    <div style="font-size: 0.8rem; color: #666;">${row.browser}</div>
+                    <div style="font-size: 0.8rem; color: #666;">${row.browser || ''}</div>
                 </td>
                 <td>${photoLink}</td>
             </tr>

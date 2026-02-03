@@ -535,24 +535,37 @@ function getDataAbsensi(params) {
   var count = 0;
 
   for (var i = data.length - 1; i >= 1 && count < limit; i--) {
-    var rowDate = data[i][0].toString().substring(0, 10);
+    var rowTimestamp = data[i][0];
+    var rowDate;
+    var formattedTimestamp;
+    
+    // Handle Date object or string
+    if (rowTimestamp instanceof Date) {
+      rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+      formattedTimestamp = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+    } else if (typeof rowTimestamp === 'string') {
+      rowDate = rowTimestamp.substring(0, 10);
+      formattedTimestamp = rowTimestamp;
+    } else {
+      continue;
+    }
 
     // Apply filter
     if (dateFrom && rowDate < dateFrom) continue;
     if (dateTo && rowDate > dateTo) continue;
-    if (namaFilter && data[i][1].toLowerCase().indexOf(namaFilter) === -1) continue;
+    if (namaFilter && data[i][1] && data[i][1].toString().toLowerCase().indexOf(namaFilter) === -1) continue;
     if (tipeFilter && data[i][2] !== tipeFilter) continue;
 
     result.push({
-      timestamp: data[i][0].toString(),
-      nama: data[i][1],
-      tipe: data[i][2],
-      latitude: data[i][3],
-      longitude: data[i][4],
-      deviceType: data[i][5],
-      os: data[i][6],
-      browser: data[i][7],
-      foto: data[i][9]
+      timestamp: formattedTimestamp,
+      nama: data[i][1] || '',
+      tipe: data[i][2] || '',
+      latitude: data[i][3] || '',
+      longitude: data[i][4] || '',
+      deviceType: data[i][5] || '',
+      os: data[i][6] || '',
+      browser: data[i][7] || '',
+      foto: data[i][9] || ''
     });
 
     count++;
