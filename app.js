@@ -313,15 +313,15 @@ function updateAbsensiStatus(status) {
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
         console.log('✅ Status: Sudah lengkap (from backend)');
-        elements.btnMasuk.disabled = true;
-        elements.btnPulang.disabled = true;
+        setButtonState(elements.btnMasuk, true);
+        setButtonState(elements.btnPulang, true);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
         // Sudah MASUK, belum PULANG
         console.log('✅ Status: Sudah MASUK (from backend)');
-        elements.btnMasuk.disabled = true;
-        elements.btnPulang.disabled = false;
+        setButtonState(elements.btnMasuk, true);
+        setButtonState(elements.btnPulang, false);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
         elements.absenStatus.className = 'absen-status info';
     } else if (hasMasukSession) {
@@ -329,8 +329,8 @@ function updateAbsensiStatus(status) {
         // Ini karena backend cache belum update
         // Gunakan data dari session storage
         console.log('✅ Status: Sudah MASUK (from session - bypassing backend cache)');
-        elements.btnMasuk.disabled = true;
-        elements.btnPulang.disabled = !hasPulangSession;
+        setButtonState(elements.btnMasuk, true);
+        setButtonState(elements.btnPulang, !hasPulangSession);
         const jamMasuk = sessionStorage.getItem('jamMasuk') || '...';
         const jamPulang = sessionStorage.getItem('jamPulang') || '';
 
@@ -344,10 +344,23 @@ function updateAbsensiStatus(status) {
     } else {
         // Belum absen sama sekali
         console.log('⏳ Status: Belum absen');
-        elements.btnMasuk.disabled = false;
-        elements.btnPulang.disabled = true;
+        setButtonState(elements.btnMasuk, false);
+        setButtonState(elements.btnPulang, true);
         elements.absenStatus.innerHTML = '⏳ <strong>Belum absen hari ini</strong><br>Silakan ambil foto dan absen MASUK.';
         elements.absenStatus.className = 'absen-status warning';
+    }
+}
+
+// Helper function to set button state (disabled + visual class)
+function setButtonState(button, disabled) {
+    button.disabled = disabled;
+
+    if (disabled) {
+        button.classList.add('btn-disabled');
+        console.log('Button disabled with class:', button.className);
+    } else {
+        button.classList.remove('btn-disabled');
+        console.log('Button enabled:', button.className);
     }
 }
 
@@ -508,15 +521,15 @@ async function submitAbsensi(tipe) {
 
         if (tipe === 'MASUK') {
             // Update UI untuk status MASUK
-            elements.btnMasuk.disabled = true;
-            elements.btnPulang.disabled = false;
+            setButtonState(elements.btnMasuk, true);
+            setButtonState(elements.btnPulang, false);
             elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + jam + '<br>Silakan absen PULANG.';
             elements.absenStatus.className = 'absen-status info';
             console.log('✅ Status updated: Sudah MASUK');
         } else {
             // Update UI untuk status PULANG (lengkap)
-            elements.btnMasuk.disabled = true;
-            elements.btnPulang.disabled = true;
+            setButtonState(elements.btnMasuk, true);
+            setButtonState(elements.btnPulang, true);
             elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + (sessionStorage.getItem('jamMasuk') || jam) + ' | PULANG: ' + jam;
             elements.absenStatus.className = 'absen-status success';
             console.log('✅ Status updated: Sudah lengkap');

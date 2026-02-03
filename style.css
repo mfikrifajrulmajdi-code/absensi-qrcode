@@ -293,7 +293,7 @@ body {
     box-shadow: 0 0 20px var(--accent-green-glow);
 }
 
-.btn-masuk:hover:not(:disabled) {
+.btn-masuk:hover:not(:disabled):not(.btn-disabled) {
     background: linear-gradient(135deg, rgba(0, 210, 106, 0.3) 0%, rgba(0, 210, 106, 0.15) 100%);
     box-shadow: 0 0 30px var(--accent-green-glow);
 }
@@ -306,7 +306,7 @@ body {
     box-shadow: 0 0 20px var(--accent-red-glow);
 }
 
-.btn-pulang:hover:not(:disabled) {
+.btn-pulang:hover:not(:disabled):not(.btn-disabled) {
     background: linear-gradient(135deg, rgba(255, 71, 87, 0.3) 0%, rgba(255, 71, 87, 0.15) 100%);
     box-shadow: 0 0 30px var(--accent-red-glow);
 }
@@ -714,8 +714,36 @@ body {
     box-shadow: none !important;
 }
 
+/* Force gray background when disabled */
+.btn:disabled,
+.btn-disabled {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Specifically override btn-masuk when disabled */
+.btn-masuk:disabled,
+.btn-masuk.btn-disabled {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* Specifically override btn-pulang when disabled */
+.btn-pulang:disabled,
+.btn-pulang.btn-disabled {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: none !important;
+}
+
 /* Remove hover effects when disabled */
-.btn-disabled:hover {
+.btn-disabled:hover,
+.btn:disabled:hover {
     transform: none !important;
     box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
 }
