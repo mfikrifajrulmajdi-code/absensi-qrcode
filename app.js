@@ -144,7 +144,7 @@ function handleCameraCapture(event) {
 
     // Convert to base64
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         photoData = e.target.result;
 
         // Show preview
@@ -271,30 +271,55 @@ async function checkAbsensiStatus() {
     // Safety check
     if (!employeeData || !employeeData.nama) {
         console.error('❌ No employee data!');
+        updateAbsensiStatus({ hasMasuk: false, hasPulang: false, jamMasuk: '', jamPulang: '' });
+        return;
+    }
+
+    // Cek URL sudah dikonfigurasi
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        console.error('❌ Apps Script URL not configured!');
+        updateAbsensiStatus({ hasMasuk: false, hasPulang: false, jamMasuk: '', jamPulang: '' });
         return;
     }
 
     try {
         const nama = encodeURIComponent(employeeData.nama);
         const url = `${APPS_SCRIPT_URL}?action=checkStatus&nama=${nama}`;
-        console.log('Fetching status from:', url);
+        console.log('📡 Fetching status from:', url);
+        console.log('📝 Looking for employee:', employeeData.nama);
 
         const response = await fetch(url);
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
+        console.log('📨 Response status:', response.status);
+        console.log('📨 Response ok:', response.ok);
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const result = await response.json();
-        console.log('Status result:', result);
+        const responseText = await response.text();
+        console.log('📄 Raw response:', responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('❌ JSON Parse error:', parseError);
+            console.error('❌ Response was:', responseText);
+            throw new Error('Invalid JSON response from server');
+        }
+
+        console.log('✅ Parsed status result:', result);
+        console.log('  - hasMasuk:', result.hasMasuk);
+        console.log('  - hasPulang:', result.hasPulang);
+        console.log('  - jamMasuk:', result.jamMasuk);
+        console.log('  - jamPulang:', result.jamPulang);
 
         updateAbsensiStatus(result);
     } catch (error) {
         console.error('❌ Error checking status:', error);
-        console.error('Error message:', error.message);
-        // Jangan show error notification, ini adalah check opsional
+        console.error('❌ Error message:', error.message);
+        // Show default status when API fails
+        updateAbsensiStatus({ hasMasuk: false, hasPulang: false, jamMasuk: '', jamPulang: '' });
     }
     console.log('=== STATUS CHECK DONE ===');
 }
@@ -303,7 +328,7 @@ function updateAbsensiStatus(status) {
     console.log('Updating UI with status from Google Sheets:', status);
 
     // Update status message BERDASARKAN DATA dari Google Sheets
-    // OPSI A: Tombol TIDAK PERNAH disabled (selalu bisa diklik)
+    // Tombol TIDAK PERNAH disabled (selalu bisa diklik)
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
         console.log('✅ Status: Sudah lengkap (from Google Sheets)');
@@ -321,9 +346,8 @@ function updateAbsensiStatus(status) {
         elements.absenStatus.className = 'absen-status warning';
     }
 
-    // Pastikan tombol SELALU enabled setelah update status
-    setButtonState(elements.btnMasuk, false);
-    setButtonState(elements.btnPulang, false);
+    // Tombol selalu enabled - tidak ada disable
+    console.log('✅ Buttons always enabled (no disable logic)');
 }
 
 // Helper function to set button state (disabled + visual class)
@@ -402,13 +426,6 @@ async function submitAbsensi(tipe) {
     if (isSubmitting) {
         console.log('⚠️ Already submitting...');
         alert('Sedang memproses, harap tunggu...');
-        return;
-    }
-
-    // Check if this specific button is already disabled
-    const clickedBtn = tipe === 'MASUK' ? elements.btnMasuk : elements.btnPulang;
-    if (clickedBtn.disabled || clickedBtn.classList.contains('btn-disabled')) {
-        console.log('⚠️ Button already disabled, ignoring click...');
         return;
     }
 
