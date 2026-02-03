@@ -511,53 +511,6 @@ function getRiwayat(nama, bulan, tahun) {
   return createJSONResponse(riwayat);
 }
 
-// ============================================
-// GET SUMMARY - Summary dashboard
-// ============================================
-
-function getSummaryHariIni() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
-  if (!sheet) {
-    return createJSONResponse({ masuk: 0, pulang: 0, belum: 0, totalKaryawan: 0 });
-  }
-
-  var data = sheet.getDataRange().getValues();
-
-  var today = new Date();
-  var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
-
-  var masukSet = new Set();
-  var pulangSet = new Set();
-  var allKaryawan = new Set();
-
-  // Collect data hari ini
-  for (var i = 1; i < data.length; i++) {
-    var rowDate = data[i][0].toString().substring(0, 10);
-
-    if (rowDate === todayStr) {
-      var nama = data[i][1];
-      allKaryawan.add(nama);
-
-      if (data[i][2] === 'MASUK') {
-        masukSet.add(nama);
-      } else if (data[i][2] === 'PULANG') {
-        pulangSet.add(nama);
-      }
-    }
-  }
-
-  var masukCount = masukSet.size;
-  var pulangCount = pulangSet.size;
-  var totalKaryawan = allKaryawan.size || 30; // Fallback ke 30 jika belum ada data
-  var belumCount = totalKaryawan - masukCount;
-
-  return createJSONResponse({
-    masuk: masukCount,
-    pulang: pulangCount,
-    belum: belumCount,
-    totalKaryawan: totalKaryawan
-  });
-}
 
 // ============================================
 // GET DATA - Ambil data dengan filter
