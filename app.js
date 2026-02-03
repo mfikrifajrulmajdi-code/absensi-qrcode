@@ -303,28 +303,27 @@ function updateAbsensiStatus(status) {
     console.log('Updating UI with status from Google Sheets:', status);
 
     // Update status message BERDASARKAN DATA dari Google Sheets
+    // OPSI A: Tombol TIDAK PERNAH disabled (selalu bisa diklik)
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
         console.log('✅ Status: Sudah lengkap (from Google Sheets)');
-        setButtonState(elements.btnMasuk, true);
-        setButtonState(elements.btnPulang, true);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
         // Sudah MASUK, belum PULANG
         console.log('✅ Status: Sudah MASUK (from Google Sheets)');
-        setButtonState(elements.btnMasuk, true);
-        setButtonState(elements.btnPulang, false);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
         elements.absenStatus.className = 'absen-status info';
     } else {
         // Belum absen sama sekali
         console.log('⏳ Status: Belum absen');
-        setButtonState(elements.btnMasuk, false);
-        setButtonState(elements.btnPulang, true);
         elements.absenStatus.innerHTML = '⏳ <strong>Belum absen hari ini</strong><br>Silakan ambil foto dan absen MASUK.';
         elements.absenStatus.className = 'absen-status warning';
     }
+
+    // Pastikan tombol SELALU enabled setelah update status
+    setButtonState(elements.btnMasuk, false);
+    setButtonState(elements.btnPulang, false);
 }
 
 // Helper function to set button state (disabled + visual class)
