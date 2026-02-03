@@ -34,7 +34,15 @@
             <div class="card summary-card belum">
                 <div class="card-icon">⏳</div>
                 <div class="card-value" id="totalBelum">-</div>
-                <div class="card-label">BELUM</div>
+                <div class="card-label">BELUM ABSEN</div>
+            </div>
+        </div>
+
+        <!-- Pending Approval (di atas filter) -->
+        <div class="card approval-section">
+            <h3>⏳ Pending Approval</h3>
+            <div id="pendingList">
+                <p class="loading-row">Memuat data...</p>
             </div>
         </div>
 
@@ -95,13 +103,7 @@
             <button class="btn btn-export" onclick="exportData()">📥 Export ke CSV</button>
         </div>
 
-        <!-- Pending Approval -->
-        <div class="card approval-section">
-            <h3>⏳ Pending Approval</h3>
-            <div id="pendingList">
-                <p class="loading-row">Memuat data...</p>
-            </div>
-        </div>
+
 
         <!-- Auto-refresh indicator -->
         <div class="refresh-indicator">

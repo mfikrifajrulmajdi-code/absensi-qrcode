@@ -381,6 +381,84 @@ function checkAbsensiHariIni(nama) {
 }
 
 // ============================================
+// GET SUMMARY - Ringkasan absensi hari ini untuk dashboard
+// ============================================
+
+function getSummaryHariIni() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
+  if (!sheet) {
+    return createJSONResponse({ masuk: 0, pulang: 0, belum: 0 });
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var today = new Date();
+  var todayStr = Utilities.formatDate(today, "Asia/Jakarta", "yyyy-MM-dd");
+
+  // Kumpulkan status per karyawan hari ini
+  var karyawanStatus = {}; // { nama: { hasMasuk: bool, hasPulang: bool } }
+
+  for (var i = 1; i < data.length; i++) {
+    var rowTimestamp = data[i][0];
+    var rowNama = data[i][1];
+    var rowTipe = data[i][2];
+
+    // Handle both Date object and string timestamp
+    var rowDate;
+    if (rowTimestamp instanceof Date) {
+      rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+    } else if (typeof rowTimestamp === 'string') {
+      rowDate = rowTimestamp.substring(0, 10);
+    } else {
+      continue;
+    }
+
+    if (rowDate === todayStr && rowNama) {
+      if (!karyawanStatus[rowNama]) {
+        karyawanStatus[rowNama] = { hasMasuk: false, hasPulang: false };
+      }
+      if (rowTipe === 'MASUK') {
+        karyawanStatus[rowNama].hasMasuk = true;
+      } else if (rowTipe === 'PULANG') {
+        karyawanStatus[rowNama].hasPulang = true;
+      }
+    }
+  }
+
+  // Hitung total
+  var totalMasuk = 0;
+  var totalPulang = 0;
+  var totalBelum = 0;
+
+  // Hitung karyawan yang sudah absen hari ini
+  for (var nama in karyawanStatus) {
+    var status = karyawanStatus[nama];
+    if (status.hasMasuk) totalMasuk++;
+    if (status.hasPulang) totalPulang++;
+  }
+
+  // Untuk "Belum Absen", kita perlu daftar karyawan
+  // Coba baca dari sheet "Karyawan" jika ada
+  var sheetKaryawan = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Karyawan");
+  if (sheetKaryawan) {
+    var dataKaryawan = sheetKaryawan.getDataRange().getValues();
+    var totalKaryawan = dataKaryawan.length - 1; // minus header
+    totalBelum = totalKaryawan - totalMasuk;
+    if (totalBelum < 0) totalBelum = 0;
+  } else {
+    // Jika tidak ada sheet Karyawan, belum = 0 (tidak bisa dihitung)
+    totalBelum = 0;
+  }
+
+  Logger.log("Summary: masuk=" + totalMasuk + ", pulang=" + totalPulang + ", belum=" + totalBelum);
+  
+  return createJSONResponse({
+    masuk: totalMasuk,
+    pulang: totalPulang,
+    belum: totalBelum
+  });
+}
+
+// ============================================
 // GET RIWAYAT - Ambil riwayat absensi
 // ============================================
 
