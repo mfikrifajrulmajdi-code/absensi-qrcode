@@ -266,34 +266,49 @@ function displayLocationError() {
 // ==========================================
 
 async function checkAbsensiStatus() {
+    console.log('=== CHECKING ABSENSI STATUS ===');
     try {
         const nama = encodeURIComponent(employeeData.nama);
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=checkStatus&nama=${nama}`);
+        const url = `${APPS_SCRIPT_URL}?action=checkStatus&nama=${nama}`;
+        console.log('Fetching status from:', url);
+
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         const result = await response.json();
+        console.log('Status result:', result);
 
         updateAbsensiStatus(result);
     } catch (error) {
-        console.error('Error checking status:', error);
+        console.error('❌ Error checking status:', error);
+        console.error('Error message:', error.message);
         // Jangan show error notification, ini adalah check opsional
     }
+    console.log('=== STATUS CHECK DONE ===');
 }
 
 function updateAbsensiStatus(status) {
+    console.log('Updating UI with status:', status);
+
     // Update status message
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
+        console.log('✅ Status: Sudah lengkap');
         elements.btnMasuk.disabled = true;
         elements.btnPulang.disabled = true;
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
         // Sudah MASUK, belum PULANG
+        console.log('✅ Status: Sudah MASUK');
         elements.btnMasuk.disabled = true;
         elements.btnPulang.disabled = false;
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
         elements.absenStatus.className = 'absen-status info';
     } else {
         // Belum absen sama sekali
+        console.log('⏳ Status: Belum absen');
         elements.btnMasuk.disabled = false;
         elements.btnPulang.disabled = true;
         elements.absenStatus.innerHTML = '⏳ <strong>Belum absen hari ini</strong><br>Silakan ambil foto dan absen MASUK.';
