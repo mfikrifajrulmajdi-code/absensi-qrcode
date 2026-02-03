@@ -300,47 +300,23 @@ async function checkAbsensiStatus() {
 }
 
 function updateAbsensiStatus(status) {
-    console.log('Updating UI with status:', status);
+    console.log('Updating UI with status from Google Sheets:', status);
 
-    // Cek apakah user sudah submit MASUK/PULANG di session ini
-    // Jika sudah, JANGAN override dengan status dari backend
-    const hasMasukSession = sessionStorage.getItem('hasMasukToday') === 'true';
-    const hasPulangSession = sessionStorage.getItem('hasPulangToday') === 'true';
-
-    console.log('Session storage - hasMasukToday:', hasMasukSession, 'hasPulangToday:', hasPulangSession);
-
-    // Update status message
+    // Update status message BERDASARKAN DATA dari Google Sheets
     if (status.hasMasuk && status.hasPulang) {
         // Sudah lengkap
-        console.log('✅ Status: Sudah lengkap (from backend)');
+        console.log('✅ Status: Sudah lengkap (from Google Sheets)');
         setButtonState(elements.btnMasuk, true);
         setButtonState(elements.btnPulang, true);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + status.jamMasuk + ' | PULANG: ' + status.jamPulang;
         elements.absenStatus.className = 'absen-status success';
     } else if (status.hasMasuk) {
         // Sudah MASUK, belum PULANG
-        console.log('✅ Status: Sudah MASUK (from backend)');
+        console.log('✅ Status: Sudah MASUK (from Google Sheets)');
         setButtonState(elements.btnMasuk, true);
         setButtonState(elements.btnPulang, false);
         elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + status.jamMasuk + '<br>Silakan absen PULANG.';
         elements.absenStatus.className = 'absen-status info';
-    } else if (hasMasukSession) {
-        // Backend bilang belum absen, TAPI session bilang sudah MASUK
-        // Ini karena backend cache belum update
-        // Gunakan data dari session storage
-        console.log('✅ Status: Sudah MASUK (from session - bypassing backend cache)');
-        setButtonState(elements.btnMasuk, true);
-        setButtonState(elements.btnPulang, !hasPulangSession);
-        const jamMasuk = sessionStorage.getItem('jamMasuk') || '...';
-        const jamPulang = sessionStorage.getItem('jamPulang') || '';
-
-        if (hasPulangSession) {
-            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + jamMasuk + ' | PULANG: ' + jamPulang;
-            elements.absenStatus.className = 'absen-status success';
-        } else {
-            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + jamMasuk + '<br>Silakan absen PULANG.';
-            elements.absenStatus.className = 'absen-status info';
-        }
     } else {
         // Belum absen sama sekali
         console.log('⏳ Status: Belum absen');
@@ -498,8 +474,7 @@ async function submitAbsensi(tipe) {
 
         console.log('Fetch completed, response:', response);
 
-        // With no-cors, we can't read the response, but request is sent
-        // Show success (assuming it worked)
+        // Show success notification
         const successMsg = tipe === 'MASUK'
             ? '✅ Absensi MASUK berhasil!'
             : '✅ Absensi PULANG berhasil!';
@@ -512,40 +487,6 @@ async function submitAbsensi(tipe) {
         btn.classList.add('success');
         setTimeout(() => btn.classList.remove('success'), 300);
 
-        // UPDATE STATUS LANGSUNG BERDASARKAN SUBMIT YANG SUKSES
-        // Ini mengatasi masalah backend cache yang belum bisa baca data baru
-        console.log('✅ Updating UI status based on successful submit...');
-
-        const now = new Date();
-        const jam = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-        if (tipe === 'MASUK') {
-            // Update UI untuk status MASUK
-            setButtonState(elements.btnMasuk, true);
-            setButtonState(elements.btnPulang, false);
-            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen MASUK</strong><br>Jam: ' + jam + '<br>Silakan absen PULANG.';
-            elements.absenStatus.className = 'absen-status info';
-            console.log('✅ Status updated: Sudah MASUK');
-        } else {
-            // Update UI untuk status PULANG (lengkap)
-            setButtonState(elements.btnMasuk, true);
-            setButtonState(elements.btnPulang, true);
-            elements.absenStatus.innerHTML = '✅ <strong>Sudah absen lengkap hari ini</strong><br>MASUK: ' + (sessionStorage.getItem('jamMasuk') || jam) + ' | PULANG: ' + jam;
-            elements.absenStatus.className = 'absen-status success';
-            console.log('✅ Status updated: Sudah lengkap');
-        }
-
-        // Simpan ke sessionStorage untuk persist status di session browser
-        if (tipe === 'MASUK') {
-            sessionStorage.setItem('jamMasuk', jam);
-            sessionStorage.setItem('hasMasukToday', 'true');
-        } else if (tipe === 'PULANG') {
-            sessionStorage.setItem('jamPulang', jam);
-            sessionStorage.setItem('hasPulangToday', 'true');
-        }
-
-        console.log('💡 Status diupdate langsung dari frontend (backend cache issue)');
-
         // Clear photo after successful submit
         if (tipe === 'PULANG') {
             retakePhoto();
@@ -554,6 +495,14 @@ async function submitAbsensi(tipe) {
         showLoading(false);
         isSubmitting = false;
         console.log('=== SUBMIT ABSENSI END ===');
+
+        // Tunggu 3 detik agar backend selesai menyimpan, lalu refresh status dari Google Sheets
+        console.log('⏳ Waiting 3 seconds before refreshing status from Google Sheets...');
+        setTimeout(async () => {
+            console.log('🔄 Refreshing status from Google Sheets...');
+            await checkAbsensiStatus();
+            console.log('✅ Status refreshed from Google Sheets');
+        }, 3000);
 
     } catch (error) {
         console.error('❌ Submit error:', error);
