@@ -32,6 +32,29 @@ function doPost(e) {
 
     // Buka spreadsheet aktif
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // DEBUG: Tulis ke Debug_Log sheet
+    var debugSheet = ss.getSheetByName("Debug_Log");
+    if (!debugSheet) {
+      debugSheet = ss.insertSheet("Debug_Log");
+      debugSheet.appendRow(["Timestamp", "Nama", "Tipe", "Latitude", "Photo Size", "Full Data"]);
+      debugSheet.setFrozenRows(1);
+    }
+
+    // Log incoming request
+    var now = new Date();
+    var photoSize = data.photo ? data.photo.length : 0;
+    debugSheet.appendRow([
+      Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss"),
+      data.nama || "NO_NAMA",
+      data.tipe || "NO_TIPE",
+      data.latitude || "NO_LAT",
+      photoSize,
+      JSON.stringify(data)
+    ]);
+
+    Logger.log("DEBUG: Data logged to Debug_Log sheet");
+
     var sheet = ss.getSheetByName("Absensi");
 
     // Jika sheet tidak ditemukan, buat baru dengan header
