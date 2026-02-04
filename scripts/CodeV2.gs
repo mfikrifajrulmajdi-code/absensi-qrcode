@@ -18,13 +18,19 @@ var JAM_KERJA = 8; // Jam kerja regular
 
 /**
  * Handle POST request dari web app
- * Menerima data absensi dan menyimpan ke Sheets
+ * Menerima data absensi atau izin dan menyimpan ke Sheets
  */
 function doPost(e) {
   try {
     // Parse JSON data dari request
     var data = JSON.parse(e.postData.contents);
+    
+    // Check if this is an izin submission
+    if (data.action === 'submitIzin') {
+      return handleSubmitIzin(data);
+    }
 
+    // Otherwise, process as absensi
     // Buka spreadsheet aktif
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("Absensi");
@@ -145,8 +151,6 @@ function doGet(e) {
     return exportData(e.parameter);
   } else if (action === 'getIzinPending') {
     return getIzinPending();
-  } else if (action === 'submitIzin') {
-    return submitIzin(e);
   } else if (action === 'approveIzin') {
     return approveIzin(e);
   }
@@ -628,11 +632,10 @@ function exportData(params) {
 // ============================================
 
 /**
- * Submit pengajuan izin
+ * Handle submit izin - dipanggil dari doPost dengan data yang sudah di-parse
  */
-function submitIzin(e) {
+function handleSubmitIzin(data) {
   try {
-    var data = JSON.parse(e.postData.contents);
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Izin");
 
     // Create sheet if not exists
@@ -655,7 +658,7 @@ function submitIzin(e) {
       lampiranUrl = uploadToImgBB(data.lampiran);
     }
 
-    // Append data
+    // Append data to Izin sheet
     sheet.appendRow([
       now,
       data.nama || "",
@@ -667,6 +670,8 @@ function submitIzin(e) {
       now
     ]);
 
+    Logger.log("Izin submitted: " + data.nama + " - " + data.jenis);
+
     return createJSONResponse({
       status: "success",
       message: "Pengajuan izin berhasil dikirim",
@@ -674,7 +679,7 @@ function submitIzin(e) {
     });
 
   } catch (error) {
-    Logger.log("Error in submitIzin: " + error.toString());
+    Logger.log("Error in handleSubmitIzin: " + error.toString());
     return createJSONResponse({
       status: "error",
       message: error.toString()

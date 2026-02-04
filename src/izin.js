@@ -116,6 +116,7 @@ async function submitIzin(event) {
 
     try {
         const data = {
+            action: 'submitIzin',  // Identifier for backend routing
             nama: nama,
             jenis: jenis,
             tanggal: tanggal,
@@ -123,7 +124,7 @@ async function submitIzin(event) {
             lampiran: lampiranData || ''
         };
 
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=submitIzin`, {
+        const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
