@@ -624,6 +624,19 @@ function showNotification(message, isError = false) {
 }
 
 // ==========================================
+// IZIN PAGE NAVIGATION
+// ==========================================
+
+function openIzinPage() {
+    // Buka halaman izin dengan nama karyawan sebagai parameter
+    const nama = encodeURIComponent(employeeData.nama);
+    window.location.href = `src/izin.html?nama=${nama}`;
+}
+
+// Expose to global scope
+window.openIzinPage = openIzinPage;
+
+// ==========================================
 // DEBUG (for development)
 // ==========================================
 

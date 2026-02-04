@@ -538,19 +538,21 @@ body {
     border-left: 4px solid var(--accent-green);
 }
 
-/* Riwayat Button */
+/* Riwayat & Izin Buttons */
 .riwayat-section {
     margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
 }
 
 .btn-riwayat {
-    width: 100%;
+    flex: 1;
     padding: 14px;
     background: var(--bg-card);
     border: 1px solid var(--accent-blue);
     border-radius: 8px;
     color: var(--accent-blue);
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -558,6 +560,23 @@ body {
 
 .btn-riwayat:hover {
     background: rgba(52, 152, 219, 0.1);
+}
+
+.btn-izin {
+    flex: 1;
+    padding: 14px;
+    background: var(--bg-card);
+    border: 1px solid #f39c12;
+    border-radius: 8px;
+    color: #f39c12;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-izin:hover {
+    background: rgba(243, 156, 18, 0.1);
 }
 
 /* Modal */
