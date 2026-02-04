@@ -706,6 +706,38 @@ function handleSubmitIzin(data) {
 
     var now = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
 
+    // ==========================================
+    // VALIDASI DUPLIKAT: Cek apakah sudah ada izin untuk nama + tanggal ini
+    // ==========================================
+    var existingData = sheet.getDataRange().getValues();
+    var targetNama = data.nama || "";
+    var targetTanggal = data.tanggal || "";
+    
+    for (var i = 1; i < existingData.length; i++) {
+      var rowNama = existingData[i][1];
+      var rowTanggal = existingData[i][3];
+      var rowStatus = existingData[i][6];
+      
+      // Format tanggal untuk perbandingan (handle Date object)
+      var rowTanggalStr = "";
+      if (rowTanggal instanceof Date) {
+        rowTanggalStr = Utilities.formatDate(rowTanggal, "Asia/Jakarta", "yyyy-MM-dd");
+      } else if (typeof rowTanggal === 'string') {
+        rowTanggalStr = rowTanggal.substring(0, 10);
+      }
+      
+      // Cek duplikat: sama nama + tanggal + status PENDING atau APPROVED
+      if (rowNama === targetNama && rowTanggalStr === targetTanggal) {
+        if (rowStatus === 'PENDING' || rowStatus === 'APPROVED') {
+          Logger.log("Duplikat izin terdeteksi: " + targetNama + " pada " + targetTanggal);
+          return createJSONResponse({
+            status: "error",
+            message: "Anda sudah memiliki pengajuan izin untuk tanggal " + targetTanggal + " (Status: " + rowStatus + ")"
+          });
+        }
+      }
+    }
+
     // Upload lampiran if any
     var lampiranUrl = '';
     if (data.lampiran && data.lampiran !== '') {
