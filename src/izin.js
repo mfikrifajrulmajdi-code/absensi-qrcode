@@ -47,11 +47,6 @@ async function checkMasukStatusHariIni(nama) {
             sudahMasukHariIni = true;
             // Tampilkan info banner
             document.getElementById('infoBanner').style.display = 'block';
-            // Auto-set durasi ke setengah hari
-            const setengahHariRadio = document.querySelector('input[name="durasi"][value="SETENGAH_HARI"]');
-            if (setengahHariRadio) {
-                setengahHariRadio.checked = true;
-            }
         }
     } catch (error) {
         console.error('Error checking MASUK status:', error);
@@ -144,7 +139,8 @@ async function submitIzin(event) {
     submitBtn.textContent = 'Mengirim...';
 
     try {
-        const durasi = document.querySelector('input[name="durasi"]:checked').value;
+        // Durasi otomatis berdasarkan status MASUK
+        const durasi = sudahMasukHariIni ? 'SETENGAH_HARI' : 'SEHARI_PENUH';
 
         const data = {
             action: 'submitIzin',  // Identifier for backend routing
