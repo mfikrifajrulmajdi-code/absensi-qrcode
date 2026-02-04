@@ -540,14 +540,20 @@ function getDataAbsensi(params) {
 
   for (var i = data.length - 1; i >= 1 && count < limit; i--) {
     var rowTimestamp = data[i][0];
+    var rowNama = data[i][1];
     var rowDate;
     var formattedTimestamp;
+    
+    // Skip baris kosong (tidak ada timestamp atau nama)
+    if (!rowTimestamp || !rowNama) {
+      continue;
+    }
     
     // Handle Date object or string
     if (rowTimestamp instanceof Date) {
       rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
       formattedTimestamp = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
-    } else if (typeof rowTimestamp === 'string') {
+    } else if (typeof rowTimestamp === 'string' && rowTimestamp.length >= 10) {
       rowDate = rowTimestamp.substring(0, 10);
       formattedTimestamp = rowTimestamp;
     } else {
@@ -557,12 +563,12 @@ function getDataAbsensi(params) {
     // Apply filter
     if (dateFrom && rowDate < dateFrom) continue;
     if (dateTo && rowDate > dateTo) continue;
-    if (namaFilter && data[i][1] && data[i][1].toString().toLowerCase().indexOf(namaFilter) === -1) continue;
+    if (namaFilter && rowNama.toString().toLowerCase().indexOf(namaFilter) === -1) continue;
     if (tipeFilter && data[i][2] !== tipeFilter) continue;
 
     result.push({
       timestamp: formattedTimestamp,
-      nama: data[i][1] || '',
+      nama: rowNama || '',
       tipe: data[i][2] || '',
       latitude: data[i][3] || '',
       longitude: data[i][4] || '',
