@@ -701,8 +701,11 @@ function getIzinPending() {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][6] === 'PENDING') {
+      // i+1 karena: i adalah index array (dimulai 1 untuk skip header)
+      // tapi sheet row adalah 1-indexed, jadi data[1] = row 2, data[2] = row 3, dst
+      var actualRow = i + 1;
       pending.push({
-        id: "row_" + i,
+        id: "row_" + actualRow,
         nama: data[i][1],
         jenis: data[i][2],
         tanggal: data[i][3].toString().substring(0, 10),
