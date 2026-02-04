@@ -167,6 +167,54 @@ function doGet(e) {
 }
 
 // ============================================
+// CHECK STATUS FUNCTIONS
+// ============================================
+
+/**
+ * Cek status absensi hari ini untuk karyawan tertentu
+ * Digunakan oleh halaman absensi dan form izin
+ */
+function checkAbsensiHariIni(nama) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Absensi");
+  if (!sheet) {
+    return createJSONResponse({ sudahMasuk: false, sudahPulang: false });
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var today = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd");
+
+  var sudahMasuk = false;
+  var sudahPulang = false;
+
+  for (var i = 1; i < data.length; i++) {
+    var rowTimestamp = data[i][0];
+    var rowNama = data[i][1];
+    var rowTipe = data[i][2];
+
+    if (!rowTimestamp || !rowNama) continue;
+
+    var rowDate = "";
+    if (rowTimestamp instanceof Date) {
+      rowDate = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+    } else if (typeof rowTimestamp === 'string') {
+      rowDate = rowTimestamp.substring(0, 10);
+    }
+
+    if (rowDate === today && rowNama === nama) {
+      if (rowTipe === 'MASUK') sudahMasuk = true;
+      if (rowTipe === 'PULANG') sudahPulang = true;
+    }
+  }
+
+  Logger.log("checkAbsensiHariIni: nama=" + nama + ", sudahMasuk=" + sudahMasuk + ", sudahPulang=" + sudahPulang);
+
+  return createJSONResponse({
+    sudahMasuk: sudahMasuk,
+    sudahPulang: sudahPulang
+  });
+}
+
+// ============================================
 // VALIDATION FUNCTIONS
 // ============================================
 
