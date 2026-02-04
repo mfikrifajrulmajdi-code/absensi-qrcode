@@ -47,6 +47,25 @@
                 <input type="date" id="tanggal" required>
             </div>
 
+            <!-- Info banner jika sudah MASUK -->
+            <div id="infoBanner" class="info-banner" style="display: none;">
+                ℹ️ Anda sudah absen MASUK hari ini. Izin ini akan dicatat sebagai <strong>setengah hari</strong>.
+            </div>
+
+            <div class="form-group">
+                <label>Durasi Izin</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="durasi" value="SEHARI_PENUH" checked>
+                        <span class="radio-label">📅 Sehari Penuh</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="durasi" value="SETENGAH_HARI">
+                        <span class="radio-label">🕐 Setengah Hari</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="alasan">Alasan</label>
                 <textarea id="alasan" rows="4" required placeholder="Jelaskan alasan pengajuan izin Anda..."></textarea>

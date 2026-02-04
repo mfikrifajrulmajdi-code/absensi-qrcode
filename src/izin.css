@@ -140,7 +140,7 @@ header h1 {
     font-weight: 500;
 }
 
-.radio-option input[type="radio"]:checked + .radio-label {
+.radio-option input[type="radio"]:checked+.radio-label {
     background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
     color: white;
     border-color: var(--bg-primary);
@@ -150,8 +150,26 @@ header h1 {
     background: #e9ecef;
 }
 
-.radio-option input[type="radio"]:checked + .radio-label:hover {
+.radio-option input[type="radio"]:checked+.radio-label:hover {
     background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+}
+
+/* Info Banner */
+.info-banner {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border: 2px solid #2196f3;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    color: #1565c0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-banner strong {
+    color: #0d47a1;
 }
 
 /* File Preview */

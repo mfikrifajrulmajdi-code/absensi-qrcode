@@ -9,12 +9,16 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_auQAH6kPH-iv
 // INITIALIZATION
 // ==========================================
 
-document.addEventListener('DOMContentLoaded', () => {
+let sudahMasukHariIni = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
     // Parse nama dari URL
     const nama = new URLSearchParams(window.location.search).get('nama');
 
     if (nama) {
         document.getElementById('nama').value = decodeURIComponent(nama);
+        // Cek status MASUK hari ini
+        await checkMasukStatusHariIni(decodeURIComponent(nama));
     } else {
         document.getElementById('nama').value = 'Unknown';
         document.getElementById('nama').placeholder = 'Nama tidak ditemukan di URL';
@@ -28,6 +32,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup file input
     setupFileInput();
 });
+
+/**
+ * Cek apakah karyawan sudah MASUK hari ini
+ */
+async function checkMasukStatusHariIni(nama) {
+    try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=checkStatus&nama=${encodeURIComponent(nama)}`);
+        const data = await response.json();
+
+        console.log('Status check result:', data);
+
+        if (data.sudahMasuk) {
+            sudahMasukHariIni = true;
+            // Tampilkan info banner
+            document.getElementById('infoBanner').style.display = 'block';
+            // Auto-set durasi ke setengah hari
+            const setengahHariRadio = document.querySelector('input[name="durasi"][value="SETENGAH_HARI"]');
+            if (setengahHariRadio) {
+                setengahHariRadio.checked = true;
+            }
+        }
+    } catch (error) {
+        console.error('Error checking MASUK status:', error);
+    }
+}
 
 // ==========================================
 // FILE INPUT HANDLING
@@ -115,12 +144,15 @@ async function submitIzin(event) {
     submitBtn.textContent = 'Mengirim...';
 
     try {
+        const durasi = document.querySelector('input[name="durasi"]:checked').value;
+
         const data = {
             action: 'submitIzin',  // Identifier for backend routing
             nama: nama,
             jenis: jenis,
             tanggal: tanggal,
             alasan: alasan,
+            durasi: durasi,
             lampiran: lampiranData || ''
         };
 
