@@ -43,7 +43,8 @@ async function checkMasukStatusHariIni(nama) {
 
         console.log('Status check result:', data);
 
-        if (data.sudahMasuk) {
+        // API returns hasMasuk (not sudahMasuk)
+        if (data.hasMasuk) {
             sudahMasukHariIni = true;
             // Tampilkan info banner
             document.getElementById('infoBanner').style.display = 'block';
