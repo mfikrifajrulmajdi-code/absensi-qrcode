@@ -867,13 +867,18 @@ function approveIzin(e) {
             rowDate = rowTimestamp.substring(0, 10);
           }
           
+          // Track entry terakhir untuk nama ini hari ini
           if (rowDate === today && rowNama === izinNama) {
-            if (rowTipe === 'MASUK') sudahMasuk = true;
-            if (rowTipe === 'PULANG') sudahPulang = true;
+            if (rowTipe === 'MASUK' || rowTipe === 'PULANG') {
+              // Entry terakhir adalah tipe ini
+              sudahMasuk = (rowTipe === 'MASUK');
+              sudahPulang = (rowTipe === 'PULANG');
+            }
           }
         }
 
-        // Jika sudah MASUK tapi belum PULANG, auto-generate PULANG
+        // Jika entry TERAKHIR adalah MASUK (bukan PULANG), auto-generate PULANG
+        // Ini handle kasus lembur: MASUK → PULANG → MASUK → (auto) PULANG
         if (sudahMasuk && !sudahPulang) {
           absensiSheet.appendRow([
             now,
