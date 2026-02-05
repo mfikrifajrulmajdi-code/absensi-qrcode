@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Absensi</title>
+    <meta name="description" content="Sistem absensi karyawan berbasis QR Code">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Company Branding -->
+        <div class="company-branding">
+            <div class="company-logo" id="companyLogo">
+                <!-- Logo akan ditampilkan di sini -->
+                <span class="logo-placeholder">LOGO</span>
+            </div>
+            <div class="company-name" id="companyName">Nama Perusahaan</div>
+        </div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">📋</span>
+                <span class="logo-text">Absensi</span>
+            </div>
+            <div class="header-time" id="headerTime">--:--</div>
+        </header>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <!-- Employee Info -->
+            <div class="info-section">
+                <div class="info-item">
+                    <div class="info-label">Nama Karyawan</div>
+                    <div class="info-value" id="employeeName">Loading...</div>
+                </div>
+
+                <div class="info-divider"></div>
+
+                <div class="info-row">
+                    <div class="info-item half">
+                        <div class="info-label">📍 Koordinat</div>
+                        <div class="info-value small" id="coordinates">
+                            <span class="loading-dots">Mengambil lokasi</span>
+                        </div>
+                    </div>
+                    <div class="info-item half">
+                        <div class="info-label">🕐 Waktu</div>
+                        <div class="info-value" id="currentTime">--:--:--</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">📅 Tanggal</div>
+                    <div class="info-value" id="currentDate">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <button class="btn-camera" id="btnCamera" onclick="openCamera()">
+                    📷 Ambil Foto
+                </button>
+
+                <!-- Photo Preview -->
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <img id="capturedPhoto" src="" alt="Foto absen">
+                    <button class="btn-retake" onclick="retakePhoto()">
+                        🔄 Ulangi Foto
+                    </button>
+                </div>
+
+                <!-- Hidden input for camera -->
+                <input type="file" id="cameraInput" accept="image/*" capture="user" style="display: none;">
+            </div>
+
+            <!-- Absen Status -->
+            <div class="absen-status" id="absenStatus"></div>
+
+            <!-- Riwayat & Izin Buttons -->
+            <div class="riwayat-section">
+                <button class="btn-riwayat" onclick="openRiwayatModal()">
+                    📋 Lihat Riwayat
+                </button>
+                <button class="btn-izin" onclick="openIzinPage()">
+                    📝 Ajukan Izin/Sakit
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-section">
+                <button class="btn btn-masuk" id="btnMasuk" onclick="submitAbsensi('MASUK')">
+                    <span class="btn-icon">🟢</span>
+                    <span class="btn-text">MASUK</span>
+                </button>
+                <button class="btn btn-pulang" id="btnPulang" onclick="submitAbsensi('PULANG')">
+                    <span class="btn-icon">🔴</span>
+                    <span class="btn-text">PULANG</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Status Notification -->
+        <div class="notification" id="notification">
+            <span class="notification-icon" id="notificationIcon">✓</span>
+            <span class="notification-text" id="notificationText">Berhasil!</span>
+        </div>
+
+        <!-- Modal Riwayat -->
+        <div class="modal" id="riwayatModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📋 Riwayat Absensi</h2>
+                    <button class="modal-close" onclick="closeRiwayatModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="riwayat-filter">
+                        <select id="filterBulan" onchange="loadRiwayat()">
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+                        <select id="filterTahun" onchange="loadRiwayat()">
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div class="riwayat-list" id="riwayatList">
+                        <p class="loading-message">Memuat riwayat...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Mengirim data...</div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Sistem Absensi QR Code v2.0</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

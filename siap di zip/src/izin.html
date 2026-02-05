@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pengajuan Izin</title>
+    <link rel="stylesheet" href="izin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Form Pengajuan Izin</h1>
+            <p class="subtitle">Sistem Absensi QR Code</p>
+        </header>
+
+        <form id="izinForm" onsubmit="submitIzin(event)">
+            <div class="form-group">
+                <label for="nama">Nama Karyawan</label>
+                <input type="text" id="nama" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Jenis Izin</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="jenis" value="Sakit" checked>
+                        <span class="radio-label">🤒 Sakit</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="jenis" value="Izin">
+                        <span class="radio-label">📋 Izin</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="jenis" value="Cuti">
+                        <span class="radio-label">🏖️ Cuti</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tanggal">Tanggal Izin</label>
+                <input type="date" id="tanggal" required>
+            </div>
+
+            <!-- Info banner jika sudah MASUK -->
+            <div id="infoBanner" class="info-banner" style="display: none;">
+                ℹ️ Anda sudah absen MASUK hari ini. Izin ini akan dicatat sebagai <strong>setengah hari</strong>.
+            </div>
+
+            <div class="form-group">
+                <label for="alasan">Alasan</label>
+                <textarea id="alasan" rows="4" required placeholder="Jelaskan alasan pengajuan izin Anda..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="lampiran">Lampiran (Opsional)</label>
+                <input type="file" id="lampiran" accept="image/*,.pdf">
+                <small>Surat dokter, surat izin, atau dokumen pendukung lainnya (max 5MB)</small>
+            </div>
+
+            <div class="file-preview" id="filePreview" style="display: none;">
+                <span id="fileName"></span>
+                <button type="button" class="btn-remove" onclick="removeFile()">✕</button>
+            </div>
+
+            <button type="submit" class="btn-submit">📤 Kirim Pengajuan</button>
+        </form>
+
+        <div id="notification" class="notification"></div>
+
+        <footer>
+            <p>Sistem Absensi QR Code v2.0</p>
+        </footer>
+    </div>
+
+    <script src="../config.js"></script>
+    <script src="izin.js"></script>
+</body>
+
+</html>

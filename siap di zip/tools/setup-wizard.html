@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Wizard - Sistem Absensi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #28a745;
+            color: white;
+        }
+
+        .output-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .copy-hint {
+            text-align: center;
+            color: #666;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Setup Wizard</h1>
+        <p class="subtitle">Sistem Absensi QR Code</p>
+
+        <!-- Step 1 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                URL Apps Script <span class="required">*</span>
+            </div>
+            <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/xxxxx/exec">
+            <p class="hint">Dapatkan URL ini dari: Google Sheets → Extensions → Apps Script → Deploy → Web app</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Nama Perusahaan (Opsional)
+            </div>
+            <input type="text" id="companyName" placeholder="PT Maju Jaya">
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                Email Admin (Opsional)
+            </div>
+            <input type="email" id="adminEmail" placeholder="admin@perusahaan.com">
+            <p class="hint">Untuk notifikasi izin (jika diaktifkan)</p>
+        </div>
+
+        <button class="btn btn-primary" onclick="generateConfig()">
+            ⚡ Generate Config
+        </button>
+
+        <!-- Output Section -->
+        <div class="output-section" id="outputSection">
+            <div class="success-msg">
+                ✅ Config berhasil di-generate!
+            </div>
+
+            <p class="copy-hint">📋 Copy kode di bawah ini dan paste ke file <strong>config.js</strong></p>
+
+            <div class="output-box" id="outputCode"></div>
+
+            <button class="btn btn-secondary" onclick="copyToClipboard()">
+                📋 Copy ke Clipboard
+            </button>
+
+            <button class="btn btn-primary" onclick="downloadConfig()">
+                ⬇️ Download config.js
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function generateConfig() {
+            const url = document.getElementById('appsScriptUrl').value.trim();
+            const company = document.getElementById('companyName').value.trim() || 'Nama Perusahaan';
+            const email = document.getElementById('adminEmail').value.trim() || 'admin@example.com';
+
+            if (!url) {
+                alert('❌ URL Apps Script wajib diisi!');
+                return;
+            }
+
+            if (!url.includes('script.google.com')) {
+                alert('⚠️ URL tidak valid. Pastikan URL dari Google Apps Script.');
+                return;
+            }
+
+            const configCode = `// ============================================
+// KONFIGURASI SISTEM ABSENSI
+// ============================================
+// File ini di-generate otomatis oleh Setup Wizard
+// Tanggal: ${new Date().toLocaleDateString('id-ID')}
+// ============================================
+
+const CONFIG = {
+    // URL Backend (dari Google Apps Script)
+    APPS_SCRIPT_URL: '${url}',
+
+    // Info Perusahaan
+    COMPANY_NAME: '${company}',
+    ADMIN_EMAIL: '${email}',
+
+    // Pengaturan Sistem (jangan diubah)
+    VERSION: '2.0.0',
+    AUTO_REFRESH_INTERVAL: 30,
+    MAX_PHOTO_SIZE: 5,
+    JAM_KERJA: 8
+};
+
+// Backward compatibility
+const APPS_SCRIPT_URL = CONFIG.APPS_SCRIPT_URL;
+`;
+
+            document.getElementById('outputCode').textContent = configCode;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('outputCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Berhasil di-copy! Sekarang paste ke file config.js');
+            });
+        }
+
+        function downloadConfig() {
+            const code = document.getElementById('outputCode').textContent;
+            const blob = new Blob([code], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>
