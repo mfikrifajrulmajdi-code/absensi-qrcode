@@ -2,8 +2,7 @@
 // FORM IZIN - JavaScript
 // ============================================
 
-// Ganti URL ini dengan URL Web App dari Google Apps Script Anda
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_auQAH6kPH-ivJPTgnsY_lsqieizti_1IrjjeYAl2t8hWok_nY5o9ngwA9s--t9md/exec';
+// URL Apps Script diambil dari config.js (sudah di-load sebelum file ini)
 
 // ==========================================
 // INITIALIZATION
