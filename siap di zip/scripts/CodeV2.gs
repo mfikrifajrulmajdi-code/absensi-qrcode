@@ -960,10 +960,10 @@ function uploadToDrive(base64Image, nama, tipe) {
     var file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    // Return viewable URL (not download URL)
-    // Format: https://drive.google.com/uc?export=view&id=FILE_ID
+    // Return viewable URL using lh3.googleusercontent.com (more reliable for embedding)
+    // Format: https://lh3.googleusercontent.com/d/FILE_ID
     var fileId = file.getId();
-    return 'https://drive.google.com/uc?export=view&id=' + fileId;
+    return 'https://lh3.googleusercontent.com/d/' + fileId;
 
   } catch (error) {
     Logger.log("Drive Upload Error: " + error.toString());

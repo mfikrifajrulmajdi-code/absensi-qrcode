@@ -434,8 +434,105 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 
-    th, td {
+    th,
+    td {
         padding: 10px;
         font-size: 0.85rem;
     }
+}
+
+/* ============================================
+   IZIN FILTER TABS
+   ============================================ */
+
+.izin-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 8px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    background: #f8f9fa;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+.filter-tab:hover {
+    background: #e9ecef;
+    border-color: var(--bg-primary);
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+    color: white;
+    border-color: var(--bg-primary);
+}
+
+/* Status badges */
+.izin-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Border colors for izin items */
+.status-pending-border {
+    border-left-color: #ffc107;
+}
+
+.status-approved-border {
+    border-left-color: var(--accent-green);
+}
+
+.status-rejected-border {
+    border-left-color: var(--accent-red);
+}
+
+/* Export buttons */
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-export-server {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white;
+    flex: 1;
+    min-width: 180px;
+}
+
+.btn-export-server:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-export {
+    flex: 1;
+    min-width: 180px;
 }

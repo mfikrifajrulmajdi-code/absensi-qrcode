@@ -6,6 +6,8 @@
 
 let refreshInterval;
 let countdownValue = 30;
+let currentIzinFilter = 'PENDING';
+let currentTableData = [];
 
 // ==========================================
 // INITIALIZATION
@@ -75,9 +77,11 @@ async function loadTableData() {
         const response = await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`);
         const data = await response.json();
 
+        currentTableData = data || [];
         renderTable(data);
     } catch (error) {
         console.error('Error loading table data:', error);
+        currentTableData = [];
         renderTableError();
     }
 }
@@ -190,37 +194,63 @@ function exportData() {
 // PENDING APPROVALS
 // ==========================================
 
-async function loadPendingApprovals() {
+async function loadPendingApprovals(statusFilter) {
+    const status = statusFilter !== undefined ? statusFilter : currentIzinFilter;
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getIzinPending`);
+        let url;
+        if (status === 'PENDING') {
+            url = `${APPS_SCRIPT_URL}?action=getIzinPending`;
+        } else {
+            url = `${APPS_SCRIPT_URL}?action=getAllIzin`;
+            if (status) url += `&status=${status}`;
+        }
+        const response = await fetch(url);
         const data = await response.json();
 
-        renderPendingApprovals(data);
+        renderPendingApprovals(data, status);
     } catch (error) {
-        console.error('Error loading pending approvals:', error);
+        console.error('Error loading approvals:', error);
         document.getElementById('pendingList').innerHTML = '<p class="loading-row">Gagal memuat data</p>';
     }
 }
 
-function renderPendingApprovals(data) {
+function filterIzinByStatus(status, btn) {
+    currentIzinFilter = status;
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadPendingApprovals(status);
+}
+
+function renderPendingApprovals(data, statusFilter) {
     const container = document.getElementById('pendingList');
 
     if (!data || data.length === 0) {
-        container.innerHTML = '<p class="empty-row">Tidak ada pengajuan pending</p>';
+        const msg = statusFilter ? `Tidak ada izin dengan status ${statusFilter}` : 'Tidak ada data izin';
+        container.innerHTML = `<p class="empty-row">${msg}</p>`;
         return;
     }
 
     let html = '';
     data.forEach(item => {
         const jenisIcon = item.jenis === 'Sakit' ? '🤒' : (item.jenis === 'Izin' ? '📋' : '🏖️');
+        const statusClass = item.status === 'APPROVED' ? 'status-approved' :
+            item.status === 'REJECTED' ? 'status-rejected' : 'status-pending';
+        const statusIcon = item.status === 'APPROVED' ? '✅' :
+            item.status === 'REJECTED' ? '❌' : '⏳';
+        const showActions = item.status === 'PENDING';
 
         html += `
-            <div class="approval-item">
+            <div class="approval-item ${statusClass}-border">
                 <div class="approval-header">
                     <div class="approval-name">${jenisIcon} ${item.nama}</div>
-                    <div class="approval-actions">
-                        <button class="btn-approve" onclick="approveIzin('${item.id}', 'APPROVED')">✓ Approve</button>
-                        <button class="btn-reject" onclick="approveIzin('${item.id}', 'REJECTED')">✗ Reject</button>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="izin-status-badge ${statusClass}">${statusIcon} ${item.status}</span>
+                        ${showActions ? `
+                        <div class="approval-actions">
+                            <button class="btn-approve" onclick="approveIzin('${item.id}', 'APPROVED')">✓ Approve</button>
+                            <button class="btn-reject" onclick="approveIzin('${item.id}', 'REJECTED')">✗ Reject</button>
+                        </div>` : ''}
                     </div>
                 </div>
                 <div class="approval-detail">
@@ -248,7 +278,7 @@ async function approveIzin(id, status) {
 
         if (result.status === 'success') {
             alert(`Pengajuan berhasil ${status === 'APPROVED' ? 'disetujui' : 'ditolak'}!`);
-            loadPendingApprovals();
+            loadPendingApprovals(currentIzinFilter);
         } else {
             alert('Gagal: ' + result.message);
         }
@@ -256,6 +286,46 @@ async function approveIzin(id, status) {
         console.error('Error approving izin:', error);
         alert('Gagal memproses pengajuan.');
     }
+}
+
+// ==========================================
+// CLIENT-SIDE CSV EXPORT
+// ==========================================
+
+function exportToCSV() {
+    if (!currentTableData || currentTableData.length === 0) {
+        alert('Tidak ada data untuk di-export. Silakan load data terlebih dahulu.');
+        return;
+    }
+
+    const headers = ['Timestamp', 'Nama', 'Tipe', 'Latitude', 'Longitude', 'Device Type', 'OS', 'Browser'];
+    let csv = headers.join(',') + '\n';
+
+    currentTableData.forEach(row => {
+        const values = [
+            `"${(row.timestamp || '').replace(/"/g, '""')}"`,
+            `"${(row.nama || '').replace(/"/g, '""')}"`,
+            `"${(row.tipe || '').replace(/"/g, '""')}"`,
+            row.latitude || '',
+            row.longitude || '',
+            `"${(row.deviceType || '').replace(/"/g, '""')}"`,
+            `"${(row.os || '').replace(/"/g, '""')}"`,
+            `"${(row.browser || '').replace(/"/g, '""')}"`
+        ];
+        csv += values.join(',') + '\n';
+    });
+
+    // BOM for Excel UTF-8 compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Absensi_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 // ==========================================

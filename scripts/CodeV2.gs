@@ -153,6 +153,10 @@ function doGet(e) {
     return getIzinPending();
   } else if (action === 'approveIzin') {
     return approveIzin(e);
+  } else if (action === 'getRiwayatIzin') {
+    return getRiwayatIzin(e.parameter.nama);
+  } else if (action === 'getAllIzin') {
+    return getAllIzin(e.parameter);
   }
 
   // Default response
@@ -809,6 +813,95 @@ function getIzinPending() {
   }
 
   return createJSONResponse(pending);
+}
+
+/**
+ * Get riwayat izin untuk karyawan tertentu
+ * Digunakan di halaman izin agar karyawan bisa lihat status pengajuan mereka
+ */
+function getRiwayatIzin(nama) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Izin");
+  if (!sheet) return createJSONResponse([]);
+  
+  var data = sheet.getDataRange().getValues();
+  var result = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][1] === nama) {
+      var tanggalStr = '';
+      if (data[i][3] instanceof Date) {
+        tanggalStr = Utilities.formatDate(data[i][3], "Asia/Jakarta", "yyyy-MM-dd");
+      } else if (typeof data[i][3] === 'string') {
+        tanggalStr = data[i][3].substring(0, 10);
+      }
+      
+      result.push({
+        tanggal: tanggalStr,
+        jenis: data[i][2],
+        alasan: data[i][4],
+        status: data[i][6] || 'PENDING',
+        durasi: data[i][8] || 'SEHARI_PENUH',
+        submittedAt: data[i][0].toString()
+      });
+    }
+  }
+  
+  // Sort terbaru di atas
+  result.sort(function(a, b) {
+    return new Date(b.submittedAt) - new Date(a.submittedAt);
+  });
+  
+  return createJSONResponse(result);
+}
+
+/**
+ * Get semua data izin dengan optional filter status
+ * Digunakan di admin dashboard untuk filter by status
+ */
+function getAllIzin(params) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Izin");
+  if (!sheet) return createJSONResponse([]);
+  
+  var data = sheet.getDataRange().getValues();
+  var result = [];
+  
+  var statusFilter = params.status || '';
+  var namaFilter = params.nama ? params.nama.toLowerCase() : '';
+  
+  for (var i = 1; i < data.length; i++) {
+    var rowStatus = data[i][6] || '';
+    var rowNama = data[i][1] || '';
+    
+    if (statusFilter && rowStatus !== statusFilter) continue;
+    if (namaFilter && rowNama.toLowerCase().indexOf(namaFilter) === -1) continue;
+    
+    var actualRow = i + 1;
+    var tanggalStr = '';
+    if (data[i][3] instanceof Date) {
+      tanggalStr = Utilities.formatDate(data[i][3], "Asia/Jakarta", "yyyy-MM-dd");
+    } else if (typeof data[i][3] === 'string') {
+      tanggalStr = data[i][3].substring(0, 10);
+    }
+    
+    result.push({
+      id: "row_" + actualRow,
+      nama: rowNama,
+      jenis: data[i][2],
+      tanggal: tanggalStr,
+      alasan: data[i][4],
+      lampiran: data[i][5] || '',
+      status: rowStatus,
+      durasi: data[i][8] || 'SEHARI_PENUH',
+      submittedAt: data[i][0].toString()
+    });
+  }
+  
+  // Sort terbaru di atas
+  result.sort(function(a, b) {
+    return new Date(b.submittedAt) - new Date(a.submittedAt);
+  });
+  
+  return createJSONResponse(result);
 }
 
 /**

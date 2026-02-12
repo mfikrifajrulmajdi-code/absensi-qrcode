@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('nama').value = decodeURIComponent(nama);
         // Cek status MASUK hari ini
         await checkMasukStatusHariIni(decodeURIComponent(nama));
+        // Load riwayat izin
+        await loadRiwayatIzin(decodeURIComponent(nama));
     } else {
         document.getElementById('nama').value = 'Unknown';
         document.getElementById('nama').placeholder = 'Nama tidak ditemukan di URL';
@@ -178,6 +180,9 @@ async function submitIzin(event) {
         lampiranData = null;
         document.getElementById('filePreview').style.display = 'none';
 
+        // Refresh riwayat izin
+        await loadRiwayatIzin(nama);
+
     } catch (error) {
         console.error('Submit error:', error);
         showNotification('❌ Gagal mengirim pengajuan. Silakan coba lagi.', true);
@@ -185,6 +190,58 @@ async function submitIzin(event) {
         // Re-enable submit button
         submitBtn.disabled = false;
         submitBtn.textContent = '📤 Kirim Pengajuan';
+    }
+}
+
+// ==========================================
+// RIWAYAT IZIN
+// ==========================================
+
+async function loadRiwayatIzin(nama) {
+    const container = document.getElementById('riwayatIzinContainer');
+
+    if (!nama || nama === 'Unknown') {
+        container.innerHTML = '<p class="riwayat-empty">Nama tidak tersedia.</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=getRiwayatIzin&nama=${encodeURIComponent(nama)}`);
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<p class="riwayat-empty">Belum ada pengajuan izin.</p>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(item => {
+            const statusClass = item.status === 'APPROVED' ? 'status-approved' :
+                item.status === 'REJECTED' ? 'status-rejected' : 'status-pending';
+            const statusIcon = item.status === 'APPROVED' ? '✅' :
+                item.status === 'REJECTED' ? '❌' : '⏳';
+            const jenisIcon = item.jenis === 'Sakit' ? '🤒' :
+                item.jenis === 'Izin' ? '📋' : '🏖️';
+            const durasiText = item.durasi === 'SETENGAH_HARI' ? 'Setengah Hari' : 'Sehari Penuh';
+
+            html += `
+                <div class="riwayat-item">
+                    <div class="riwayat-header">
+                        <span class="riwayat-jenis">${jenisIcon} ${item.jenis}</span>
+                        <span class="riwayat-status ${statusClass}">${statusIcon} ${item.status}</span>
+                    </div>
+                    <div class="riwayat-detail">
+                        <div>📅 ${item.tanggal} &middot; ${durasiText}</div>
+                        <div class="riwayat-alasan">${item.alasan}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading riwayat izin:', error);
+        container.innerHTML = '<p class="riwayat-empty">Gagal memuat riwayat izin.</p>';
     }
 }
 
